@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Habit Quest · 朋友圈九宫格</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:#b9b1a6}
+  body{font-family:"PingFang SC","Hiragino Sans GB","Heiti SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+  #stage{display:flex;flex-wrap:wrap;gap:20px;padding:20px;width:max-content}
+  .poster{width:1080px;height:1080px;position:relative;overflow:hidden;display:flex;flex-direction:column;padding:74px 76px 58px}
+  canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+
+  /* ---------- 主题 ---------- */
+  .cream{background:#FBF4E4;color:#2B2138}
+  .cream .muted{color:#7A6A88}
+  .plum{background:#221931;color:#FBF4E4}
+  .plum .muted{color:#A99BC4}
+
+  /* ---------- 通用元件 ---------- */
+  .brand{display:flex;align-items:center;gap:12px;font-size:20px;letter-spacing:5px;font-weight:700;opacity:.72}
+  .brand i{width:16px;height:16px;background:#F7C948;border:3px solid #2B2138;display:block}
+  .plum .brand i{border-color:#FBF4E4}
+  .tag{display:inline-flex;align-items:center;gap:10px;font-size:21px;letter-spacing:3px;font-weight:700;
+       padding:9px 20px;border:3px solid currentColor;border-radius:999px;opacity:.85;align-self:flex-start}
+  .h1{font-size:78px;line-height:1.24;font-weight:800;letter-spacing:-1px;margin-top:30px}
+  .h1 em{font-style:normal;color:#E0574D}
+  .h1 b{color:#4FB286}
+  .plum .h1 b{color:#7FDAAD}
+  .sub{font-size:30px;line-height:1.62;margin-top:26px;letter-spacing:.4px}
+  .art{border:4px solid #2B2138;border-radius:20px;overflow:hidden;background:#fff;
+       box-shadow:12px 12px 0 rgba(43,33,56,.16);align-self:center}
+  .plum .art{border-color:#FBF4E4;box-shadow:12px 12px 0 rgba(0,0,0,.4)}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;font-size:22px;letter-spacing:2px;opacity:.62}
+
+  /* ---------- 封面 ---------- */
+  .p1 .h1{margin-top:26px}
+  .p1 .art{margin-top:30px}
+
+  /* ---------- 习惯卡 ---------- */
+  .habits{display:flex;gap:22px;margin-top:34px}
+  .hcard{flex:1;background:#fff;border:4px solid #2B2138;border-radius:18px;padding:26px 24px;
+         box-shadow:8px 8px 0 rgba(43,33,56,.14);display:flex;flex-direction:column;gap:14px}
+  .hcard .ico{display:flex;align-items:center;gap:12px}
+  .hcard .ico span{font-size:26px;font-weight:800;letter-spacing:.5px}
+  .hcard .streak{display:flex;gap:6px}
+  .hcard .streak i{width:16px;height:16px;border-radius:4px;background:#E8DEC8;display:block}
+  .hcard .streak i.on{background:#4FB286}
+  .hcard .streak i.gold{background:#F7C948}
+  .hcard small{font-size:19px;color:#7A6A88;letter-spacing:1px}
+
+  /* ---------- 打卡瞬间 ---------- */
+  .p3 .shot{position:relative;margin-top:28px;align-self:center;border:4px solid #FBF4E4;border-radius:20px;
+            overflow:hidden;box-shadow:12px 12px 0 rgba(0,0,0,.4)}
+  .confetti{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .confetti i{position:absolute;display:block;border-radius:1px}
+  .bubble{position:absolute;left:34px;top:30px;max-width:520px;background:#FBF4E4;color:#2B2138;
+          border:4px solid #2B2138;border-radius:16px;padding:20px 24px;font-size:28px;line-height:1.5;font-weight:700}
+  .bubble:after{content:"";position:absolute;left:56px;bottom:-20px;width:0;height:0;
+          border:10px solid transparent;border-top-color:#2B2138}
+  .stats{position:absolute;left:34px;bottom:30px;display:flex;gap:12px}
+  .stats b{background:#F7C948;color:#2B2138;font-size:23px;padding:10px 16px;border-radius:10px;
+           border:3px solid #2B2138;letter-spacing:1px}
+  .stats b.g{background:#7FDAAD}
+  .stats b.w{background:#FBF4E4}
+
+  /* ---------- 进化对比 ---------- */
+  .compare{display:flex;align-items:center;gap:18px;margin-top:34px;justify-content:center}
+  .compare figure{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .compare figcaption{font-size:22px;letter-spacing:2px;font-weight:700;opacity:.75}
+  .arrow{font-size:44px;font-weight:800;opacity:.5}
+  .frame{border:4px solid #2B2138;border-radius:16px;overflow:hidden;background:#fff;
+         box-shadow:8px 8px 0 rgba(43,33,56,.14)}
+  .gachip{margin-top:26px;align-self:center;background:#F7C948;color:#2B2138;border:4px solid #2B2138;
+          border-radius:999px;padding:12px 28px;font-size:24px;font-weight:800;letter-spacing:2px;
+          box-shadow:6px 6px 0 rgba(43,33,56,.16)}
+
+  /* ---------- 抽卡大卡 ---------- */
+  .gcard{margin:30px auto 0;border:5px solid #2B2138;border-radius:22px;overflow:hidden;background:#fff;
+         box-shadow:14px 14px 0 rgba(43,33,56,.18)}
+  .plum .gcard{border-color:#F7C948;box-shadow:14px 14px 0 rgba(0,0,0,.45)}
+  .gwrap{position:relative}
+  .gwrap .stars{position:absolute;right:18px;top:14px;font-size:34px;color:#F7C948;letter-spacing:3px;
+                text-shadow:2px 2px 0 #2B2138}
+  .gmeta{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;background:#FBF4E4;
+         border-top:5px solid #2B2138;color:#2B2138}
+  .gmeta b{font-size:32px;letter-spacing:1px}
+  .gmeta span{font-size:22px;color:#7A6A88;letter-spacing:2px}
+
+  /* ---------- 掉落 ---------- */
+  .drops{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+  .dcard{background:#FBF4E4;border:4px solid #2B2138;border-radius:16px;overflow:hidden;
+         box-shadow:8px 8px 0 rgba(0,0,0,.28);display:flex;flex-direction:column}
+  .dcard .lbl{background:#FBF4E4;color:#2B2138;font-size:21px;font-weight:800;text-align:center;
+              padding:10px 0;border-top:4px solid #2B2138;letter-spacing:1px}
+
+  /* ---------- 收尾 ---------- */
+  .p9 .quote{font-size:62px;line-height:1.4;font-weight:800;letter-spacing:-.5px;margin-top:32px}
+  .p9 .quote span{color:#F7C948}
+  .p9 .chips{display:flex;gap:14px;margin-top:30px}
+  .p9 .chips i{font-style:normal;font-size:23px;font-weight:800;letter-spacing:2px;padding:11px 22px;
+               border:3px solid #F7C948;border-radius:999px;color:#F7C948}
+  .p9 .sub2{font-size:27px;line-height:1.7;margin-top:26px;color:#A99BC4;letter-spacing:.5px}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- ============ 01 封面 ============ -->
+  <section class="poster cream p1" data-name="01-cover">
+    <div class="brand"><i></i><span>HABIT QUEST</span></div>
+    <div class="tag" style="margin-top:34px">像素风 · 21 天习惯养成</div>
+    <h1 class="h1">像打游戏一样，<br>21 天养成 <em>新习惯</em></h1>
+    <p class="sub muted">选一只像素小分身，设最多 3 个习惯。<br>每天打个卡，它会一路进化到第 21 天。</p>
+    <div class="art"><canvas id="c1" width="96" height="64" style="width:672px;height:448px"></canvas></div>
+    <div class="foot"><span>3 个角色任选 · 5 段进化 · 4 种场景</span><span>01 / 09</span></div>
+  </section>
+
+  <!-- ============ 02 用途 ============ -->
+  <section class="poster cream" data-name="02-how">
+    <div class="tag">① 怎么用</div>
+    <h1 class="h1" style="font-size:70px">最多 3 个习惯，<br>每个都有自己的 <b>小分身</b></h1>
+    <p class="sub muted">早起、喝水、读书——各带一只小形象，<br>完成一次，它就亮一格。</p>
+    <div class="habits">
+      <div class="hcard">
+        <div class="ico"><canvas width="8" height="8" style="width:56px;height:56px" data-icon="star"></canvas><span>早起</span></div>
+        <div class="streak"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+        <small>连续 4 天</small>
+      </div>
+      <div class="hcard">
+        <div class="ico"><canvas width="8" height="8" style="width:56px;height:56px" data-icon="drop"></canvas><span>喝够水</span></div>
+        <div class="streak"><i class="gold"></i><i class="gold"></i><i class="gold"></i><i class="gold"></i><i class="gold"></i><i class="gold"></i><i class="gold"></i></div>
+        <small>今天已完成</small>
+      </div>
+      <div class="hcard">
+        <div class="ico"><canvas width="8" height="8" style="width:56px;height:56px" data-icon="leaf"></canvas><span>读 10 页</span></div>
+        <div class="streak"><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i></div>
+        <small>连续 2 天</small>
+      </div>
+    </div>
+    <p class="sub muted" style="margin-top:34px;font-size:27px">断一天不清零，只是慢一点。<br>21 天之后可以继续记，进入下一轮。</p>
+    <div class="foot"><span>不用注册 · 打开就能玩</span><span>02 / 09</span></div>
+  </section>
+
+  <!-- ============ 03 打卡瞬间 ============ -->
+  <section class="poster plum p3" data-name="03-checkin">
+    <div class="tag">② 每天的一瞬间</div>
+    <h1 class="h1" style="font-size:72px">点一下，屏幕就 <b>撒花</b></h1>
+    <div class="shot" style="position:relative">
+      <canvas id="c3" width="96" height="64" style="width:672px;height:448px"></canvas>
+      <div class="confetti" id="confetti"></div>
+      <div class="bubble">你没有等「有状态」才行动，<br>这就是大人。</div>
+      <div class="stats"><b>活力 +18</b><b class="g">经验 +32</b><b class="w">掉落 ×1</b></div>
+    </div>
+    <p class="sub muted" style="font-size:27px;margin-top:26px">40 句夸夸轮着来，每次都不一样；<br>随机掉一条奖励，可能是你自己写的那条。</p>
+    <div class="foot"><span>撒花 · 夸夸 · 活力条 · 奖励</span><span>03 / 09</span></div>
+  </section>
+
+  <!-- ============ 04 第 3 天 ============ -->
+  <section class="poster cream" data-name="04-day3">
+    <div class="tag">③ DAY 3 · 抽枝</div>
+    <h1 class="h1" style="font-size:72px">第 3 天，<br>它长出第一件 <em>披风</em></h1>
+    <div class="compare">
+      <figure>
+        <div class="frame"><canvas id="c4a" width="96" height="64" style="width:384px;height:256px"></canvas></div>
+        <figcaption>第 1 天</figcaption>
+      </figure>
+      <div class="arrow">→</div>
+      <figure>
+        <div class="frame"><canvas id="c4b" width="96" height="64" style="width:384px;height:256px"></canvas></div>
+        <figcaption>第 3 天</figcaption>
+      </figure>
+    </div>
+    <div class="gachip">🎴 每次进化都是抽卡</div>
+    <p class="sub muted" style="margin-top:26px;font-size:27px">3 / 7 / 14 / 21 天各进化一次。<br>场景、称号、星级全随机——你抽到的和别人不一样。</p>
+    <div class="foot"><span>同样的习惯，不同的分身</span><span>04 / 09</span></div>
+  </section>
+
+  <!-- ============ 05 第 7 天 ============ -->
+  <section class="poster plum" data-name="05-day7">
+    <div class="tag">④ DAY 7 · 生长</div>
+    <h1 class="h1" style="font-size:64px;margin-top:24px">第 7 天，王冠和称号一起到手</h1>
+    <div class="gcard">
+      <div class="gwrap">
+        <canvas id="c5" width="96" height="64" style="width:672px;height:448px"></canvas>
+        <div class="stars">★★★★☆</div>
+      </div>
+      <div class="gmeta"><b>星轨观测员</b><span>星空 · 第 7 天</span></div>
+    </div>
+    <p class="sub muted" style="margin-top:26px;font-size:27px">4 种场景 × 场景专属称号 × 3–5 星，<br>全部随机组合，卡片收进你的成就册。</p>
+    <div class="foot"><span>沙漠 · 星空 · 日出 · 湖泊</span><span>05 / 09</span></div>
+  </section>
+
+  <!-- ============ 06 第 14 天 ============ -->
+  <section class="poster cream" data-name="06-day14">
+    <div class="tag">⑤ DAY 14 · 绽放</div>
+    <h1 class="h1" style="font-size:64px;margin-top:24px">第 14 天，身上开始有光</h1>
+    <div class="gcard">
+      <div class="gwrap">
+        <canvas id="c6" width="96" height="64" style="width:672px;height:448px"></canvas>
+        <div class="stars" style="color:#F7C948">★★★★★</div>
+      </div>
+      <div class="gmeta"><b>沙海之王</b><span>沙漠 · 第 14 天</span></div>
+    </div>
+    <p class="sub muted" style="margin-top:26px;font-size:27px">宝石、金饰、光晕一件件叠上去，<br>肩膀上那点重量肉眼可见。</p>
+    <div class="foot"><span>体型拉长 · 服饰升级 · 光晕变化</span><span>06 / 09</span></div>
+  </section>
+
+  <!-- ============ 07 第 21 天 ============ -->
+  <section class="poster cream" data-name="07-day21">
+    <div class="tag">⑥ DAY 21 · 加冕</div>
+    <h1 class="h1" style="font-size:64px;margin-top:24px">第 21 天，<b>加冕</b></h1>
+    <div style="display:flex;gap:26px;align-items:center;margin-top:30px">
+      <div class="frame" style="border-radius:18px"><canvas id="c7" width="96" height="64" style="width:576px;height:384px"></canvas></div>
+      <div style="flex:1">
+        <div class="frame" style="border-radius:16px;width:296px;margin:0 auto">
+          <canvas id="c7m" width="96" height="64" style="width:288px;height:192px"></canvas>
+        </div>
+        <p style="text-align:center;font-size:23px;font-weight:800;letter-spacing:2px;margin-top:14px;color:#7A6A88">21 天习惯勋章</p>
+      </div>
+    </div>
+    <p class="sub muted" style="margin-top:26px;font-size:27px">光环、全套华服，加一枚 21 天勋章。<br>然后你可以继续记下去，进入第二轮。</p>
+    <div class="foot"><span>通关不是终点</span><span>07 / 09</span></div>
+  </section>
+
+  <!-- ============ 08 随机掉落 ============ -->
+  <section class="poster plum" data-name="08-drops">
+    <div class="tag">⑦ 随机掉落</div>
+    <h1 class="h1" style="font-size:62px;margin-top:22px">每次打卡，<br>都可能掉点东西</h1>
+    <div class="drops">
+      <div class="dcard"><canvas id="d1" width="40" height="40" style="width:200px;height:200px"></canvas><div class="lbl">酷墨镜</div></div>
+      <div class="dcard"><canvas id="d2" width="40" height="40" style="width:200px;height:200px"></canvas><div class="lbl">迷你王冠</div></div>
+      <div class="dcard"><canvas id="d3" width="40" height="40" style="width:200px;height:200px"></canvas><div class="lbl">金色手杖</div></div>
+      <div class="dcard"><canvas id="d4" width="40" height="40" style="width:200px;height:200px"></canvas><div class="lbl">针织围巾</div></div>
+      <div class="dcard"><canvas id="d5" width="20" height="20" style="width:200px;height:200px"></canvas><div class="lbl">焦糖布丁</div></div>
+      <div class="dcard"><canvas id="d6" width="20" height="20" style="width:200px;height:200px"></canvas><div class="lbl">草莓甜甜圈</div></div>
+    </div>
+    <p class="sub muted" style="margin-top:22px;font-size:25px">装饰可以穿，也可以不穿；零食投喂会飘爱心。<br>设了自定义奖励就先掉你自己写的那条。</p>
+    <div class="foot"><span>12 种装饰 · 8 种零食</span><span>08 / 09</span></div>
+  </section>
+
+  <!-- ============ 09 收尾 ============ -->
+  <section class="poster plum p9" data-name="09-quote">
+    <div class="tag">⑧ 为什么这件事能坚持</div>
+    <p class="quote">「惊喜一直有，<br>坚持就不<span>费劲</span>。」</p>
+    <div class="chips"><i>一句夸夸</i><i>一把撒花</i><i>一件掉落</i></div>
+    <p class="sub2">把「今天必须做到」，换成「今天想看看会掉什么」。</p>
+    <div style="margin-top:auto;align-self:center" class="art">
+      <canvas id="c9" width="96" height="64" style="width:672px;height:448px"></canvas>
+    </div>
+    <div class="foot"><span>HABIT QUEST · 21 天，养大一只你自己</span><span>09 / 09</span></div>
+  </section>
+
+</div>
+
+<script src="pixel-art.js"></script>
+<script>
+const P = (id) => {
+  const cv = document.getElementById(id);
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  return mkPainter(ctx);
+};
+const drawSh = (p, x, y, rx = 10) => p.ellipse(x, y, rx, 2, 'rgba(20,10,30,0.20)');
+
+/* 场景 + 角色 */
+function sceneChar(id, { scene, seed, char = 'prince', stage = 1, ox = 32, oy = 26, decor = [] }) {
+  const p = P(id);
+  drawScene(p, scene, seed);
+  drawSh(p, ox + 16, 57);
+  const m = CHARS[char].draw(p, stage, ox, oy);
+  decor.forEach(d => DECOR_MAP[d] && DECOR_MAP[d].draw(p, m));
+  return m;
+}
+/* 纯色底 + 角色（用于装饰展示） */
+function flatChar(id, { bg = '#FBF4E4', char = 'prince', stage = 1, ox = 32, oy = 26, decor = [], ground = true }) {
+  const p = P(id);
+  p(0, 0, 96, 64, bg);
+  if (ground) p.ellipse(ox + 16, 58, 11, 2, 'rgba(43,33,56,0.10)');
+  const m = CHARS[char].draw(p, stage, ox, oy);
+  decor.forEach(d => DECOR_MAP[d] && DECOR_MAP[d].draw(p, m));
+  return m;
+}
+/* 透明底食物（画布 12x12） */
+function foodItem(id, fid) {
+  const p = P(id);
+  FOOD_MAP[fid].draw(p, 2, 2);
+}
+
+/* 01 封面：三只并排 */
+(function () {
+  const p = P('c1');
+  drawScene(p, 'sunrise', 47);
+  [[6, 'prince'], [34, 'princess'], [62, 'cat']].forEach(([ox, k]) => {
+    p.ellipse(ox + 16, 57, 9, 2, 'rgba(20,10,30,0.18)');
+    CHARS[k].draw(p, 1, ox, 26);
+  });
+})();
+
+/* 02 习惯小图标 */
+document.querySelectorAll('[data-icon]').forEach(cv => {
+  const p = mkPainter(cv.getContext('2d'));
+  drawIcon(p, cv.dataset.icon, 0, 0, ICON_COLOR[cv.dataset.icon]);
+});
+
+/* 03 打卡瞬间 */
+sceneChar('c3', { scene: 'sunrise', seed: 71, char: 'cat', stage: 2, decor: ['bell'] });
+
+/* 04 第 3 天对比 */
+sceneChar('c4a', { scene: 'sunrise', seed: 33, char: 'prince', stage: 1 });
+sceneChar('c4b', { scene: 'sunrise', seed: 33, char: 'prince', stage: 2 });
+
+/* 05 第 7 天（星空 · 公主带王冠） */
+sceneChar('c5', { scene: 'star', seed: 61, char: 'princess', stage: 3, decor: ['crown'] });
+
+/* 06 第 14 天（沙漠 · 王子带光晕） */
+sceneChar('c6', { scene: 'desert', seed: 88, char: 'prince', stage: 4, decor: ['cape'] });
+
+/* 07 第 21 天（湖泊 · 猫咪 stage5） */
+sceneChar('c7', { scene: 'lake', seed: 47, char: 'cat', stage: 5 });
+
+/* 07 勋章 */
+(function () {
+  const p = P('c7m');
+  drawScene(p, 'lake', 47);
+  p(0, 0, 96, 64, 'rgba(10,8,20,0.45)');
+  p(38, 20, 4, 12, '#c0453f'); p(54, 20, 4, 12, '#c0453f');
+  p(42, 20, 12, 3, '#96332e');
+  p.circle(48, 40, 14, '#e8b64a');
+  p.circle(48, 40, 12, '#ffd76e');
+  p.circle(48, 40, 10, '#f2cf7a');
+  p(46, 32, 5, 3, '#fff8d4'); p(44, 35, 9, 3, '#fff8d4');
+  p(45, 38, 3, 4, '#fff8d4'); p(50, 38, 3, 4, '#fff8d4');
+  p(43, 44, 2, 5, '#7a5a10'); p(45, 44, 2, 2, '#7a5a10'); p(45, 47, 2, 2, '#7a5a10');
+  p(49, 44, 2, 5, '#7a5a10'); p(51, 44, 2, 2, '#7a5a10'); p(53, 45, 2, 2, '#7a5a10'); p(51, 47, 2, 2, '#7a5a10');
+})();
+
+/* 08 装饰与食物：先画在离屏 96x64，再裁切放大，保证像素不被拉糊 */
+const OFF = document.createElement('canvas');
+OFF.width = 96; OFF.height = 64;
+function blit(id, cx, cy, cw, ch) {
+  const cv = document.getElementById(id);
+  const ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(OFF, cx, cy, cw, ch, 0, 0, cv.width, cv.height);
+}
+function offChar(char, stage, decor) {
+  const ctx = OFF.getContext('2d');
+  ctx.clearRect(0, 0, 96, 64);
+  const p = mkPainter(ctx);
+  const m = CHARS[char].draw(p, stage, 32, 26);
+  decor.forEach(d => DECOR_MAP[d] && DECOR_MAP[d].draw(p, m));
+}
+function offFood(fid) {
+  const ctx = OFF.getContext('2d');
+  ctx.clearRect(0, 0, 96, 64);
+  const p = mkPainter(ctx);
+  FOOD_MAP[fid].draw(p, 44, 26);
+}
+offChar('prince', 3, ['sunglasses']); blit('d1', 30, 20, 40, 40);
+offChar('princess', 1, ['crown']);    blit('d2', 30, 20, 40, 40);
+offChar('prince', 2, ['cane']);       blit('d3', 30, 20, 40, 40);
+offChar('cat', 3, ['scarf']);         blit('d4', 30, 20, 40, 40);
+offFood('pudding');                   blit('d5', 40, 22, 20, 20);
+offFood('donut');                     blit('d6', 40, 22, 20, 20);
+
+/* 09 收尾：三只满级 */
+(function () {
+  const p = P('c9');
+  drawScene(p, 'star', 47);
+  [[6, 'prince'], [34, 'princess'], [62, 'cat']].forEach(([ox, k]) => {
+    p.ellipse(ox + 16, 57, 9, 2, 'rgba(0,0,0,0.25)');
+    CHARS[k].draw(p, 5, ox, 26);
+  });
+})();
+
+/* 03 撒花 */
+(function () {
+  const box = document.getElementById('confetti');
+  const cols = ['#F7C948', '#E0574D', '#4FB286', '#5B8FD6', '#F59AB8', '#FFF8EC'];
+  let html = '';
+  let s = 12345;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 46; i++) {
+    const x = rnd() * 100, y = rnd() * 100, w = 6 + rnd() * 6, h = 10 + rnd() * 14;
+    const c = cols[i % cols.length];
+    const rot = Math.round(rnd() * 90 - 45);
+    html += `<i style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%;width:${w.toFixed(0)}px;height:${h.toFixed(0)}px;background:${c};transform:rotate(${rot}deg);opacity:${(0.55 + rnd() * 0.45).toFixed(2)}"></i>`;
+  }
+  box.innerHTML = html;
+})();
+</script>
+</body>
+</html>

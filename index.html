@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>习惯星球 · Habit Quest</title>
+<style>
+:root{
+  --bg:#120f1e; --panel:#221a36; --panel2:#1a1429; --line:#4a3a6e;
+  --gold:#ffd76e; --mint:#7fdaad; --pink:#ff9ab5; --blue:#8fd0ff;
+  --text:#efe6ff; --dim:#9a8fbd; --ink:#0d0a17;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff6cf 50%, transparent 51%),
+    radial-gradient(1px 1px at 78% 8%, #cfc6ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 42% 32%, #fff6cf 50%, transparent 51%),
+    radial-gradient(1px 1px at 88% 62%, #9f97d6 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 74%, #fff6cf 50%, transparent 51%),
+    radial-gradient(1px 1px at 64% 88%, #cfc6ff 50%, transparent 51%),
+    linear-gradient(#151024, #100c1b 60%, #0c0916);
+  color:var(--text);
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,ui-monospace,monospace;
+  font-size:14px; line-height:1.6; min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+body::after{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:9000;
+  background:repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px);
+  opacity:.5;
+}
+.px{image-rendering:pixelated; image-rendering:-moz-crisp-edges}
+img,canvas{display:block}
+
+/* ---------- 顶栏 ---------- */
+.hud{
+  max-width:1180px; margin:0 auto; padding:20px 20px 6px;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.brand{
+  display:flex; align-items:center; gap:10px;
+  font-weight:700; letter-spacing:2px; font-size:16px;
+}
+.brand .logo{
+  width:22px; height:22px; display:grid; place-items:center;
+  background:var(--gold); color:#3a2a08; font-size:12px;
+  box-shadow:0 0 0 3px #4a3a6e, 0 0 18px rgba(255,215,110,.45);
+}
+.brand small{color:var(--dim); font-weight:400; letter-spacing:1px; font-size:11px; margin-left:2px}
+.hud-right{display:flex; align-items:center; gap:8px}
+.chip-day{
+  background:#2a1f42; border:2px solid var(--line); padding:6px 12px;
+  font-family:ui-monospace,monospace; font-size:12px; letter-spacing:1px; color:var(--gold);
+}
+.icon-btn{
+  width:34px; height:34px; background:#2a1f42; color:var(--text);
+  border:2px solid var(--line); cursor:pointer; font-size:15px; line-height:1;
+  display:grid; place-items:center; transition:.15s;
+}
+.icon-btn:hover{background:#372a55; color:var(--gold)}
+.icon-btn.on{color:var(--gold); border-color:var(--gold); box-shadow:0 0 12px rgba(255,215,110,.3)}
+
+/* ---------- 布局 ---------- */
+main{
+  max-width:1180px; margin:0 auto; padding:10px 20px 40px;
+  display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:16px; align-items:start;
+}
+.col{display:flex; flex-direction:column; gap:16px; min-width:0}
+@media(max-width:900px){
+  main{grid-template-columns:1fr}
+}
+
+.panel{
+  background:linear-gradient(#241c3a,#1d1730);
+  border:3px solid var(--line);
+  box-shadow:inset 0 0 0 2px #2d2450, 0 5px 0 rgba(0,0,0,.35);
+  padding:14px; position:relative;
+}
+.panel-head{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px}
+.panel-title{
+  margin:0 0 10px; font-size:12px; letter-spacing:2px; color:var(--gold);
+  text-transform:uppercase; font-weight:700;
+}
+.panel-head .panel-title{margin:0}
+.hint{font-size:11px; color:var(--dim); font-family:ui-monospace,monospace}
+.tiny{font-size:12px; color:var(--dim); margin:6px 0 0}
+
+/* ---------- 英雄区 ---------- */
+.hero-frame{
+  position:relative; border:3px solid #3d2f5e; background:#0f0b1a;
+  box-shadow:inset 0 0 30px rgba(0,0,0,.6);
+  margin:-14px -14px 12px;
+}
+.hero-frame canvas{width:100%; height:auto}
+.hero-tag{
+  position:absolute; right:8px; top:8px; font-size:10px; letter-spacing:2px;
+  background:rgba(18,15,30,.72); border:1px solid rgba(255,255,255,.18);
+  padding:3px 8px; color:#d9d0ff;
+}
+.hero-name-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.hero-name-row h2{margin:0; font-size:19px; letter-spacing:1px}
+.stage-pill{
+  font-size:10px; letter-spacing:1px; padding:3px 8px; color:#20160a;
+  background:var(--gold); font-weight:700;
+}
+.medal-pill{
+  font-size:10px; letter-spacing:1px; padding:3px 8px; color:#3d2a02;
+  background:#ffe89a; border:1px solid #c9a24a; font-weight:700;
+}
+.char-sub{margin:2px 0 12px; font-size:12px; color:var(--dim)}
+
+.bars{display:flex; flex-direction:column; gap:8px}
+.bar-row{display:flex; align-items:center; gap:8px}
+.bar-label{font-size:11px; color:var(--dim); width:28px; flex:none; letter-spacing:1px}
+.bar{
+  position:relative; flex:1; height:18px; background:#0f0b1a;
+  border:2px solid #3a2c59; overflow:hidden;
+}
+.bar i{
+  display:block; height:100%; width:0; transition:width .6s cubic-bezier(.2,.8,.3,1);
+  background:linear-gradient(#8ef0c2,#3fae86);
+}
+.bar.hp i{background:linear-gradient(#ff9ab5,#d9547a)}
+.bar.exp i{background:linear-gradient(#ffe89a,#e0a92e)}
+.bar b{
+  position:absolute; inset:0; display:grid; place-items:center;
+  font-family:ui-monospace,monospace; font-size:10px; color:#fff;
+  text-shadow:0 1px 0 rgba(0,0,0,.6); font-weight:400; letter-spacing:.5px;
+}
+.bar.mini{height:8px; border-width:2px}
+.bar.mini i{background:linear-gradient(#c9a8ff,#7d5fd0)}
+
+.evo-track{display:flex; gap:6px; margin-top:14px}
+.evo-step{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; opacity:.45}
+.evo-step .dot{
+  width:100%; text-align:center; padding:4px 0; font-size:11px; letter-spacing:1px;
+  background:#161126; border:2px solid #3a2c59; font-family:ui-monospace,monospace;
+}
+.evo-step .lbl{font-size:10px; color:var(--dim)}
+.evo-step.done{opacity:1}
+.evo-step.done .dot{background:rgba(255,215,110,.14); border-color:var(--gold); color:var(--gold)}
+.evo-step.next .dot{border-color:var(--pink); color:var(--pink); animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,154,181,.4)}50%{box-shadow:0 0 0 4px rgba(255,154,181,0)}}
+
+/* ---------- 日历 ---------- */
+.calendar{display:grid; grid-template-columns:repeat(7,1fr); gap:5px}
+.cal-cell{
+  aspect-ratio:1; display:grid; place-items:center; background:#171128;
+  border:2px solid #302449; font-family:ui-monospace,monospace; font-size:11px; color:#5f5480;
+}
+.cal-cell.filled{background:rgba(255,215,110,.13); border-color:rgba(255,215,110,.55); color:var(--gold)}
+.cal-cell.today{box-shadow:0 0 0 2px var(--pink) inset}
+
+/* ---------- 习惯卡 ---------- */
+.habit{
+  display:flex; align-items:center; gap:10px; padding:10px;
+  background:#1a1429; border:2px solid #332751; margin-bottom:8px;
+  transition:.2s;
+}
+.habit:last-child{margin-bottom:0}
+.habit.done{background:rgba(127,218,173,.07); border-color:rgba(127,218,173,.4)}
+.habit-ava{
+  width:44px; height:44px; flex:none; display:grid; place-items:center;
+  background:#0f0b1a; border:2px solid #3a2c59;
+}
+.habit-ava canvas{width:32px; height:32px}
+.habit-main{flex:1; min-width:0}
+.habit-top{display:flex; align-items:center; gap:6px}
+.habit-name{font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.streak{font-size:10px; color:var(--gold); background:rgba(255,215,110,.12); padding:1px 6px; border:1px solid rgba(255,215,110,.35)}
+.habit-meta{font-size:11px; color:var(--dim); margin:2px 0 6px}
+
+/* ---------- 按钮 ---------- */
+.btn{
+  font-family:inherit; font-size:12px; letter-spacing:1px; font-weight:700;
+  color:#fff; background:#6b4fc4; border:0; padding:9px 16px; cursor:pointer;
+  box-shadow:inset -3px -3px 0 #4a2f9c, inset 3px 3px 0 #a68cf5, 0 4px 0 #2b1a5c;
+  transition:transform .06s, box-shadow .06s; white-space:nowrap;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:translateY(3px); box-shadow:inset -3px -3px 0 #4a2f9c, inset 3px 3px 0 #a68cf5, 0 1px 0 #2b1a5c}
+.btn:disabled{opacity:.55; cursor:default; transform:none}
+.btn.check{padding:8px 14px; background:#3d8f6d; box-shadow:inset -3px -3px 0 #2a6a4f, inset 3px 3px 0 #7fdaad, 0 4px 0 #1c4a37}
+.btn.check.ghost{background:#2a2242; color:var(--mint); box-shadow:inset -3px -3px 0 #1c1630, inset 3px 3px 0 #3f3560, 0 4px 0 #120e20}
+.btn.primary{background:#d9a227; color:#241703; box-shadow:inset -3px -3px 0 #b07f16, inset 3px 3px 0 #ffe89a, 0 4px 0 #6f4f08}
+.btn.ghost2{background:#2a2242; color:var(--text); box-shadow:inset -3px -3px 0 #1c1630, inset 3px 3px 0 #3f3560, 0 4px 0 #120e20}
+.mini-btn{
+  font-family:inherit; font-size:11px; color:var(--text); background:#332751;
+  border:2px solid #4a3a6e; padding:3px 8px; cursor:pointer;
+}
+.mini-btn:hover{color:var(--gold); border-color:var(--gold)}
+
+/* ---------- 奖励 ---------- */
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px}
+.chip{
+  font-size:11px; padding:3px 8px; background:#2a1f42; border:1px solid #4a3a6e; color:#d9d0ff;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.chip.dim{color:var(--dim); border-style:dashed}
+.chip button{background:none;border:0;color:var(--dim);cursor:pointer;font-size:12px;padding:0 0 0 2px}
+.chip button:hover{color:var(--pink)}
+.drop{
+  display:flex; align-items:center; gap:8px; padding:7px 8px; background:#1a1429;
+  border:2px solid #332751; margin-bottom:6px;
+}
+.drop.claimed{opacity:.5}
+.drop-icon{font-size:14px}
+.drop-text{flex:1; font-size:12.5px}
+.drop.claimed .drop-text{text-decoration:line-through}
+
+/* ---------- 衣柜 ---------- */
+.wardrobe{display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:8px}
+.wardrobe.empty{display:block}
+.decor{
+  background:#1a1429; border:2px solid #332751; padding:6px 4px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:2px; color:var(--dim);
+  font-family:inherit; font-size:10px; transition:.15s;
+}
+.decor canvas{width:44px; height:44px}
+.decor:hover{border-color:#6b4fc4; color:var(--text)}
+.decor.on{border-color:var(--gold); background:rgba(255,215,110,.1); color:var(--gold); box-shadow:0 0 12px rgba(255,215,110,.18)}
+.foodbag{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
+.food{
+  display:flex; align-items:center; gap:4px; background:#1a1429; border:2px solid #332751;
+  padding:4px 8px 4px 4px; cursor:pointer; color:var(--dim); font-family:inherit; font-size:11px;
+}
+.food canvas{width:26px; height:26px}
+.food b{color:var(--gold); font-family:ui-monospace,monospace; font-size:10px}
+.food:hover{border-color:var(--mint); color:var(--text)}
+
+/* ---------- 成就卡 ---------- */
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px}
+.acard{background:#0f0b1a; border:3px solid #4a3a6e; box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.acard canvas{width:100%; height:auto}
+.acard-meta{padding:6px 8px 8px; border-top:2px solid #332751}
+.acard-title{display:block; font-size:12px; color:var(--gold); letter-spacing:1px}
+.acard-sub{display:block; font-size:10px; color:var(--dim)}
+
+/* ---------- 底部 ---------- */
+.foot{text-align:center; font-size:11px; color:#4f4570; padding:0 0 30px; letter-spacing:1px}
+
+/* ---------- 浮层 ---------- */
+.overlay{
+  position:fixed; inset:0; z-index:5000; display:none; align-items:center; justify-content:center;
+  background:rgba(9,7,16,.88); padding:20px; overflow:auto;
+}
+.overlay.show{display:flex}
+.onboard-box{
+  width:100%; max-width:720px; background:linear-gradient(#241c3a,#1a1429);
+  border:3px solid var(--line); box-shadow:inset 0 0 0 2px #2d2450, 0 10px 0 rgba(0,0,0,.4);
+  padding:26px;
+}
+.ob-step h1{margin:0 0 4px; font-size:20px; letter-spacing:1px}
+.ob-step > p{margin:0 0 18px; font-size:12.5px; color:var(--dim)}
+.char-pick{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+@media(max-width:620px){.char-pick{grid-template-columns:1fr}}
+.char-card{
+  background:#0f0b1a; border:3px solid #3a2c59; padding:0; cursor:pointer;
+  font-family:inherit; color:var(--text); text-align:left; transition:.15s; overflow:hidden;
+}
+.char-card canvas{width:100%; height:auto}
+.char-card-meta{padding:8px 10px 10px; border-top:2px solid #332751}
+.char-card-meta b{display:block; font-size:14px; letter-spacing:1px}
+.char-card-meta span{display:block; font-size:11px; color:var(--dim); margin-top:2px}
+.char-card:hover{border-color:#6b4fc4; transform:translateY(-2px)}
+.char-card.sel{border-color:var(--gold); box-shadow:0 0 0 2px rgba(255,215,110,.25), 0 0 24px rgba(255,215,110,.2)}
+.ob-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:22px; flex-wrap:wrap}
+
+.habit-input{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+.hi-num{width:22px; height:22px; display:grid; place-items:center; background:#332751; font-size:11px; color:var(--dim); flex:none}
+.hi-name{
+  flex:1; min-width:160px; background:#0f0b1a; border:2px solid #3a2c59; color:var(--text);
+  padding:9px 10px; font-family:inherit; font-size:13px; outline:none;
+}
+.hi-name:focus{border-color:var(--gold)}
+.hi-icons{display:flex; gap:4px; flex:none}
+.hi-ic{
+  width:30px; height:30px; display:grid; place-items:center; background:#0f0b1a;
+  border:2px solid #3a2c59; cursor:pointer; padding:0;
+}
+.hi-ic canvas{width:20px; height:20px}
+.hi-ic.on{border-color:var(--gold); background:rgba(255,215,110,.12)}
+
+.add-row{display:flex; gap:8px; margin-top:10px}
+.add-row input{
+  flex:1; background:#0f0b1a; border:2px solid #3a2c59; color:var(--text);
+  padding:8px 10px; font-family:inherit; font-size:13px; outline:none;
+}
+.add-row input:focus{border-color:var(--gold)}
+
+/* ---------- 抽卡 ---------- */
+.gacha-wrap{display:flex; flex-direction:column; align-items:center; gap:18px; perspective:1400px}
+.gacha-title{font-size:12px; letter-spacing:4px; color:var(--gold)}
+.card3d{
+  width:268px; height:352px; position:relative; transform-style:preserve-3d;
+  transition:transform .75s cubic-bezier(.4,1.3,.5,1);
+}
+.card3d.flip{transform:rotateY(180deg)}
+.face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border:4px solid #5a4784; background:#191228; overflow:hidden;
+  box-shadow:0 0 0 3px #0b0812, 0 14px 40px rgba(0,0,0,.6);
+}
+.face.back{
+  display:grid; place-items:center; color:var(--gold); font-size:64px;
+  background:
+    repeating-linear-gradient(45deg,#1b1430 0 8px,#211838 8px 16px);
+}
+.face.back::after{content:''; position:absolute; inset:12px; border:2px dashed rgba(255,215,110,.25)}
+.face.front{transform:rotateY(180deg); display:flex; flex-direction:column}
+.face.front canvas{width:100%; height:auto; border-bottom:2px solid #3a2c59}
+.gacha-info{padding:10px 12px; flex:1; display:flex; flex-direction:column; gap:4px}
+.gacha-stage{font-size:9px; letter-spacing:2px; color:var(--dim); font-family:ui-monospace,monospace}
+.gacha-rarity{color:var(--gold); letter-spacing:2px; font-size:13px; text-shadow:0 0 10px rgba(255,215,110,.5)}
+.gacha-name{font-size:17px; letter-spacing:2px; color:#fff}
+.gacha-desc{font-size:11px; color:var(--dim); line-height:1.55; margin-top:auto}
+
+/* ---------- 设置 ---------- */
+.set-box{width:100%; max-width:460px; background:linear-gradient(#241c3a,#1a1429); border:3px solid var(--line); padding:22px}
+.set-box h3{margin:0 0 14px; font-size:14px; letter-spacing:2px; color:var(--gold)}
+.set-label{display:block; font-size:11px; color:var(--dim); margin:14px 0 6px; letter-spacing:1px}
+.set-box input{
+  width:100%; background:#0f0b1a; border:2px solid #3a2c59; color:var(--text);
+  padding:8px 10px; font-family:inherit; font-size:13px; outline:none;
+}
+.set-box input:focus{border-color:var(--gold)}
+.set-row{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+.set-row span{width:18px; font-size:11px; color:var(--dim); font-family:ui-monospace,monospace}
+.set-actions{display:flex; flex-direction:column; gap:8px; margin-top:18px}
+.demo-row{display:flex; gap:6px; flex-wrap:wrap}
+.demo-row .mini-btn{flex:1; padding:7px 4px; text-align:center}
+.set-actions .row{display:flex; gap:8px}
+.set-actions .btn{flex:1}
+.danger{background:#8a3a3a !important; box-shadow:inset -3px -3px 0 #632626, inset 3px 3px 0 #c96b6b, 0 4px 0 #3d1414 !important}
+
+/* ---------- 夸夸 / toast ---------- */
+#praiseLayer{
+  position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
+  z-index:6000; display:flex; flex-direction:column; align-items:center; gap:8px; pointer-events:none;
+  width:min(92vw,520px);
+}
+.praise{
+  background:linear-gradient(#2a2242,#1d1730); border:3px solid var(--gold);
+  padding:12px 16px; font-size:13px; color:#fff; line-height:1.6;
+  box-shadow:0 6px 0 rgba(0,0,0,.35), 0 0 24px rgba(255,215,110,.18);
+  animation:popIn .35s cubic-bezier(.2,1.5,.4,1);
+  position:relative; max-width:100%;
+}
+.praise .pq{color:var(--gold); font-size:20px; line-height:0; margin-right:2px}
+.praise .ph{display:block; font-size:10px; color:var(--dim); margin-top:4px; letter-spacing:1px}
+.praise.out{animation:fadeUp .6s forwards}
+@keyframes popIn{from{opacity:0; transform:translateY(16px) scale(.94)} to{opacity:1; transform:none}}
+@keyframes fadeUp{to{opacity:0; transform:translateY(-24px)}}
+
+#toastLayer{position:fixed; left:50%; top:22px; transform:translateX(-50%); z-index:6500; display:flex; flex-direction:column; gap:6px; pointer-events:none; align-items:center; width:min(92vw,420px)}
+.toast{
+  background:#2a2242; border:2px solid #6b4fc4; color:#fff; font-size:12px;
+  padding:7px 14px; box-shadow:0 3px 0 rgba(0,0,0,.35); animation:popIn .3s;
+}
+.toast.out{animation:fadeUp .5s forwards}
+
+#fxCanvas{position:fixed; inset:0; z-index:4000; pointer-events:none}
+
+/* ---------- 登录门（首页） ---------- */
+#gate{
+  position:fixed; inset:0; z-index:6000; display:none; overflow:auto;
+  background:radial-gradient(circle at 50% -10%, #1d1533 0%, #0c0916 62%);
+}
+#gate.show{display:block}
+.gate-wrap{
+  min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:36px 18px 44px;
+}
+.gate-hero{
+  width:min(430px,84vw); border:3px solid var(--line);
+  box-shadow:0 0 0 3px #241c3a, 0 10px 0 rgba(0,0,0,.45);
+}
+.gate-hero canvas{width:100%; height:auto}
+.gate-title{
+  margin:26px 0 0; font-size:clamp(25px,6.6vw,40px); font-weight:800; letter-spacing:8px;
+  color:var(--gold); text-indent:8px;
+  text-shadow:0 3px 0 #6b4a12, 0 0 28px rgba(255,215,110,.45);
+}
+.gate-sub{margin:10px 0 24px; font-size:12px; color:var(--dim); letter-spacing:3px}
+.gate-card{
+  width:min(420px,92vw); background:linear-gradient(#241c3a,#1a1429); border:3px solid var(--line);
+  box-shadow:inset 0 0 0 2px #2d2450, 0 8px 0 rgba(0,0,0,.4); padding:18px;
+}
+.gate-label{margin-bottom:9px; font-size:11.5px; color:var(--dim); letter-spacing:1.5px}
+.gate-field{display:flex; gap:8px; margin-bottom:10px}
+.gate-input{
+  flex:1; min-width:0; background:#0f0b1a; border:2px solid #3a2c59; color:var(--text);
+  padding:11px 12px; font-family:inherit; font-size:13px; outline:none;
+}
+.gate-input:focus{border-color:#6b4fc4}
+.gate-input::placeholder{color:#5f5580}
+.gate-btn{
+  background:var(--gold); color:#3a2a08; border:2px solid #b8892c; font-family:inherit;
+  font-weight:700; font-size:12.5px; padding:0 14px; cursor:pointer; letter-spacing:1px;
+  white-space:nowrap; transition:.15s;
+}
+.gate-btn:hover:not(:disabled){filter:brightness(1.08)}
+.gate-btn:disabled{opacity:.45; cursor:not-allowed}
+.gate-btn.wide{width:100%; padding:12px 0; font-size:14px; letter-spacing:2px}
+.gate-err{min-height:15px; margin-top:9px; font-size:11.5px; color:#ff8f8f; letter-spacing:.5px}
+.gate-or{display:flex; align-items:center; gap:10px; margin:14px 0 11px; font-size:10.5px; color:#5f5580; letter-spacing:2px}
+.gate-or::before,.gate-or::after{content:''; flex:1; height:2px; background:#2d2450}
+.gate-oauth{display:flex; flex-direction:column; gap:8px}
+.gate-btn.oauth{width:100%; padding:11px 0; font-size:13px; letter-spacing:1.5px}
+.gate-btn.wx{background:#1fae5e; border-color:#14874a; color:#f0fff6}
+.gate-btn .rec{
+  display:inline-block; margin-left:7px; padding:1px 5px; font-size:9.5px; font-weight:700;
+  letter-spacing:0; background:#ffe7a3; color:#6b4a12; border-radius:2px; vertical-align:1px;
+}
+.gate-btn.wb{background:#2a2040; border-color:#4b3a73; color:var(--text); font-weight:600}
+.gate-btn.wb:hover:not(:disabled){background:#352a52; filter:none}
+.gate-tip{margin-top:6px; font-size:11px; color:#7d719c; line-height:1.75}
+.gate-tip b{color:var(--mint); font-weight:600}
+.gate-loading{
+  display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--dim); letter-spacing:1px;
+  padding:6px 2px;
+}
+.gate-loading i{
+  width:9px; height:9px; background:var(--gold); display:block; animation:gatePulse 1s infinite steps(2);
+}
+.gate-loading[hidden]{display:none}
+@keyframes gatePulse{0%,100%{opacity:.25}50%{opacity:1}}
+
+/* ---------- 设置里的账号行 ---------- */
+.acct{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  background:#0f0b1a; border:2px solid #3a2c59; padding:9px 11px; font-size:11.5px; color:var(--dim);
+}
+.acct b{color:var(--text); font-weight:600}
+.acct .mini-btn{padding:5px 10px; font-size:11px}
+
+/* ---------- 同步状态 ---------- */
+.sync-dot{
+  display:inline-flex; align-items:center; gap:5px; font-size:10.5px; color:#6f648f; letter-spacing:1px;
+}
+.sync-dot i{width:6px; height:6px; background:#4a3a6e; display:block; transition:.2s}
+.sync-dot.ok i{background:var(--mint)}
+.sync-dot.ing i{background:var(--gold); animation:gatePulse .9s infinite steps(2)}
+.sync-dot.bad i{background:#e2585a}
+
+/* ---------- 滚动条 ---------- */
+::-webkit-scrollbar{width:10px; height:10px}
+::-webkit-scrollbar-track{background:#0f0b1a}
+::-webkit-scrollbar-thumb{background:#3a2c59}
+::-webkit-scrollbar-thumb:hover{background:#5a4784}
+</style>
+</head>
+<body>
+
+<header class="hud">
+  <div class="brand"><span class="logo">◆</span>HABIT QUEST<small>习惯星球</small></div>
+  <div class="hud-right">
+    <div class="chip-day" id="dayChip">DAY 0 / 21</div>
+    <span class="sync-dot" id="syncDot" title="云端同步状态"><i></i><span id="syncText">已同步</span></span>
+    <button class="icon-btn" id="soundBtn" title="音效开关">♪</button>
+    <button class="icon-btn" id="settingsBtn" title="设置">⚙</button>
+  </div>
+</header>
+
+<main>
+  <!-- 左列 -->
+  <div class="col">
+    <section class="panel">
+      <div class="hero-frame">
+        <canvas id="heroCanvas" width="96" height="64" class="px"></canvas>
+        <div class="hero-tag" id="sceneTag">星空</div>
+      </div>
+      <div class="hero-name-row">
+        <h2 id="charName">小王子</h2>
+        <span class="stage-pill" id="stagePill">初芽 · STAGE 1</span>
+        <span class="medal-pill" id="medalPill" hidden>🏅 勋章</span>
+      </div>
+      <p class="char-sub" id="charSub"></p>
+      <div class="bars">
+        <div class="bar-row">
+          <span class="bar-label">活力</span>
+          <div class="bar hp"><i id="hpBar"></i><b id="hpTxt">60/100</b></div>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label">经验</span>
+          <div class="bar exp"><i id="expBar"></i><b id="expTxt">0/120</b></div>
+        </div>
+      </div>
+      <div class="evo-track" id="evoTrack"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">21 天轨迹</h3>
+        <span class="hint" id="calHint"></span>
+      </div>
+      <div class="calendar" id="calendar"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">成就卡片</h3>
+        <span class="hint">已收集 <b id="cardCount" style="color:var(--gold)">0</b></span>
+      </div>
+      <div class="cards" id="cards"></div>
+    </section>
+  </div>
+
+  <!-- 右列 -->
+  <div class="col">
+    <section class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">今日微习惯</h3>
+        <span class="hint" id="habitHint"></span>
+      </div>
+      <div id="habits"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">奖励掉落</h3>
+        <span class="hint">完成任务随机掉一条</span>
+      </div>
+      <div id="rewardDrops" class="drops"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h3 class="panel-title">衣柜 & 零食</h3>
+        <span class="hint" id="decorHint"></span>
+      </div>
+      <div id="wardrobe" class="wardrobe"></div>
+      <div id="foodBag" class="foodbag"></div>
+    </section>
+  </div>
+</main>
+
+<footer class="foot">像素风 21 天习惯养成 · 进度自动保存到你的账号</footer>
+
+<!-- 登录门：网站首页 -->
+<div id="gate">
+  <div class="gate-wrap">
+    <div class="gate-hero"><canvas id="gateCanvas" width="96" height="64" class="px"></canvas></div>
+    <h1 class="gate-title">游戏化习惯养成</h1>
+    <p class="gate-sub">21 天 · 养大一只你自己</p>
+    <div class="gate-card">
+      <div class="gate-loading" id="gateLoading"><i></i><span>正在读取你的存档…</span></div>
+      <div id="gateForm" hidden>
+        <div class="gate-label">邮箱验证码登录</div>
+        <div class="gate-field">
+          <input class="gate-input" id="gateId" type="text" inputmode="email" autocomplete="email"
+                 placeholder="请输入邮箱地址" maxlength="60">
+          <button class="gate-btn" id="gateSend" type="button">获取验证码</button>
+        </div>
+        <div class="gate-field">
+          <input class="gate-input" id="gateCode" type="text" inputmode="numeric" autocomplete="one-time-code"
+                 placeholder="输入 6 位验证码" maxlength="6">
+        </div>
+        <button class="gate-btn wide" id="gateSubmit" type="button">登录 / 注册</button>
+        <div class="gate-or">或用以下方式</div>
+        <div class="gate-oauth">
+          <button class="gate-btn oauth wx" id="btnWechat" type="button">微信登录<span class="rec">推荐</span></button>
+          <button class="gate-btn oauth wb" id="btnWorkbuddy" type="button">使用 WorkBuddy 登录</button>
+        </div>
+        <div class="gate-err" id="gateErr"></div>
+        <div class="gate-tip" id="gateTip">
+          第一次来会直接创建账号，不用设密码。<br>
+          登录后进度存在云端 —— <b>换手机、换电脑都能接着养</b>。<br>
+          不想收邮件？直接点下面的<b>微信登录</b>，扫一下就行。
+        </div>
+      </div>
+      <button class="gate-btn wide" id="gateReload" type="button" hidden style="margin-top:12px">重新读取存档</button>
+    </div>
+  </div>
+</div>
+
+<!-- 引导 -->
+<div class="overlay" id="onboard">
+  <div class="onboard-box">
+    <div class="ob-step" id="ob1">
+      <h1>选一个同行者</h1>
+      <p>TA 会陪你走完 21 天，并在第 3 / 7 / 14 / 21 天进化。</p>
+      <div class="char-pick" id="charPick"></div>
+      <div class="ob-actions"><button class="btn primary" id="toStep2" disabled>下一步 →</button></div>
+    </div>
+    <div class="ob-step" id="ob2" hidden>
+      <h1>定下你的微习惯</h1>
+      <p>最多 3 个，每个可以配一个自己的小形象。</p>
+      <div id="habitInputs"></div>
+      <div class="ob-actions">
+        <button class="btn ghost2" id="backStep1">← 返回</button>
+        <button class="btn primary" id="toStep3">下一步 →</button>
+      </div>
+    </div>
+    <div class="ob-step" id="ob3" hidden>
+      <h1>给自己准备奖励</h1>
+      <p>完成一次打卡会掉落一条。不设也行，系统会随机给。</p>
+      <div class="chips" id="rewardChips"></div>
+      <div class="add-row">
+        <input id="rewardInput" maxlength="18" placeholder="比如：打 10 分钟游戏">
+        <button class="mini-btn" id="addReward">添加</button>
+      </div>
+      <div class="ob-actions">
+        <button class="btn ghost2" id="backStep2">← 返回</button>
+        <button class="btn primary" id="startBtn">开始 21 天 ✦</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 抽卡 -->
+<div class="overlay" id="gacha">
+  <div class="gacha-wrap">
+    <div class="gacha-title">进 化 抽 卡</div>
+    <div class="card3d" id="card3d">
+      <div class="face back">?</div>
+      <div class="face front">
+        <canvas id="gachaCanvas" width="96" height="64" class="px"></canvas>
+        <div class="gacha-info">
+          <div class="gacha-stage" id="gachaStage">STAGE 2</div>
+          <div class="gacha-rarity" id="gachaStars">★★★</div>
+          <div class="gacha-name" id="gachaTitle"></div>
+          <div class="gacha-desc" id="gachaDesc"></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn primary" id="gachaBtn">开启进化 ✦</button>
+  </div>
+</div>
+
+<!-- 设置 -->
+<div class="overlay" id="settings">
+  <div class="set-box">
+    <h3>设 置</h3>
+    <label class="set-label">角色名</label>
+    <input id="setName" maxlength="10">
+    <label class="set-label">习惯名称</label>
+    <div id="setHabits"></div>
+    <label class="set-label">自定义奖励（最多 8 条）</label>
+    <div class="chips" id="setRewards"></div>
+    <div class="add-row">
+      <input id="setRewardInput" maxlength="18" placeholder="添加一条奖励">
+      <button class="mini-btn" id="setAddReward">添加</button>
+    </div>
+    <label class="set-label">进化演示 · 直接跳到第 N 天看打卡效果</label>
+    <div class="demo-row">
+      <button class="mini-btn" data-demo="3">第 3 天</button>
+      <button class="mini-btn" data-demo="7">第 7 天</button>
+      <button class="mini-btn" data-demo="14">第 14 天</button>
+      <button class="mini-btn" data-demo="21">第 21 天</button>
+    </div>
+    <label class="set-label">账号</label>
+    <div class="acct">
+      <span id="acctText">未登录</span>
+      <button class="mini-btn" id="acctOut">退出登录</button>
+    </div>
+    <div class="set-actions">
+      <button class="btn" id="setSave">保存修改</button>
+      <button class="btn ghost2" id="setSim">预览：快进一天 ⏩</button>
+      <div class="row">
+        <button class="btn ghost2" id="setClose">关闭</button>
+        <button class="btn danger" id="setReset">重置全部</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="praiseLayer"></div>
+<div id="toastLayer"></div>
+<canvas id="fxCanvas"></canvas>
+
+<script>
+var WorkBuddyCloud=(()=>{var ie=Object.defineProperty;var _t=Object.getOwnPropertyDescriptor;var Tt=Object.getOwnPropertyNames;var Ot=Object.prototype.hasOwnProperty;var a=(r,e)=>ie(r,"name",{value:e,configurable:!0});var At=(r,e)=>{for(var t in e)ie(r,t,{get:e[t],enumerable:!0})},Rt=(r,e,t,s)=>{if(e&&typeof e=="object"||typeof e=="function")for(let n of Tt(e))!Ot.call(r,n)&&n!==t&&ie(r,n,{get:()=>e[n],enumerable:!(s=_t(e,n))||s.enumerable});return r};var $t=r=>Rt(ie({},"__esModule",{value:!0}),r);var nr={};At(nr,{AuthModule:()=>D,CLOUD_MODULE_PATHS:()=>R,CLOUD_PATH_PREFIX:()=>j,CloudOpenAIError:()=>x,CloudStoragePathError:()=>w,DEFAULT_SIGNED_URL_TTL_SECONDS:()=>ge,LlmModule:()=>M,MAX_SIGNED_URL_TTL_SECONDS:()=>ye,PUBLISHABLE_KEY_HEADER:()=>be,RUNTIME_STORAGE_BUCKET:()=>W,WorkBuddyCloudClient:()=>se,WorkBuddyCloudConfigError:()=>T,WorkBuddyDatabaseModule:()=>J,WorkBuddyStorageBucket:()=>H,WorkBuddyStorageDownload:()=>te,WorkBuddyStorageModule:()=>re,anonymousTokenProvider:()=>oe,createMemoryStorage:()=>ke,createWorkBuddyCloud:()=>vt,getModelCapability:()=>Oe,getModelDisplayName:()=>Te,shouldClearCredentials:()=>Pt});var T=class extends Error{static{a(this,"WorkBuddyCloudConfigError")}constructor(e){super(e),this.name="WorkBuddyCloudConfigError"}};var Ut=/^wbpk_/;function Le(r,e){if(typeof r!="string"||r.trim()==="")throw new T(`${e} is required and must be a non-empty string.`);let t=r.trim(),s;try{s=new URL(t)}catch{throw new T(`${e} must be an absolute URL, received: ${t}`)}if(s.protocol!=="https:"&&s.protocol!=="http:")throw new T(`${e} must use http(s), received protocol: ${s.protocol}`);return t.replace(/\/+$/,"")}a(Le,"normalizeHttpUrl");function It(r){if(r!=null&&r!=="")return Le(r,"endpoint");let e=globalThis.location?.origin;if(typeof e!="string"||e==="")throw new T("endpoint is required outside browsers (no location.origin to fall back to).");return e.replace(/\/+$/,"")}a(It,"resolveEndpoint");function Ct(r){if(typeof r!="string"||r.trim()==="")throw new T("publishableKey is required and must be a non-empty string.");let e=r.trim();if(!Ut.test(e))throw new T('publishableKey must start with "wbpk_".');return e}a(Ct,"normalizePublishableKey");function Lt(r){if(r)return r;if(typeof globalThis.fetch!="function")throw new T("Global fetch is unavailable in this runtime; pass options.fetch explicitly.");return globalThis.fetch.bind(globalThis)}a(Lt,"resolveFetch");function je(r){if(!r||typeof r!="object")throw new T("createWorkBuddyCloud requires publishableKey.");return Object.freeze({endpoint:It(r.endpoint),oauthRelayBaseUrl:r.oauthRelayBaseUrl?Le(r.oauthRelayBaseUrl,"oauthRelayBaseUrl"):"",publishableKey:Ct(r.publishableKey),fetch:Lt(r.fetch)})}a(je,"resolveRuntimeConfig");var be="x-wb-webapp-access-key";function we(r,e){return async(t,s)=>{let n=new Headers(s?.headers);if(n.set(be,r.publishableKey),!n.has("Authorization")){let i=await e();i&&n.set("Authorization",`Bearer ${i}`)}return r.fetch(t,{...s,headers:n})}}a(we,"createCloudFetch");var oe=a(()=>Promise.resolve(void 0),"anonymousTokenProvider");var j="/.cloud",R=Object.freeze({auth:`${j}/auth`,database:`${j}/database/rest`,storage:`${j}/storage`,llm:`${j}/llm`});var jt="workbuddy-cloud.pkce.workbuddy.",Bt="workbuddy-cloud.pkce-done.workbuddy.";function Be(r){let e="";for(let t of r)e+=String.fromCharCode(t);return btoa(e).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}a(Be,"base64UrlEncode");function De(){let r=globalThis.crypto;return typeof r?.getRandomValues=="function"&&typeof r?.subtle?.digest=="function"&&typeof globalThis.btoa=="function"}a(De,"hasWebCrypto");function Ne(){let r=new Uint8Array(32);return globalThis.crypto.getRandomValues(r),Be(r)}a(Ne,"createCodeVerifier");async function Me(r){let e=new TextEncoder().encode(r),t=await globalThis.crypto.subtle.digest("SHA-256",e);return Be(new Uint8Array(t))}a(Me,"computeS256Challenge");var ae=class{static{a(this,"WorkBuddyPkceStore")}verifierKey;consumedKey;constructor(e){this.verifierKey=jt+e,this.consumedKey=Bt+e}usable(){let e=this.storage();if(!e)return!1;try{let t=`${this.verifierKey}.probe`;return e.setItem(t,"1"),e.removeItem(t),!0}catch{return!1}}saveVerifier(e){try{let t=this.storage();return t?(t.setItem(this.verifierKey,e),t.removeItem(this.consumedKey),!0):!1}catch{return!1}}readVerifier(){try{return this.storage()?.getItem(this.verifierKey)??null}catch{return null}}clearVerifier(){try{this.storage()?.removeItem(this.verifierKey)}catch{}}markConsumed(e){try{this.storage()?.setItem(this.consumedKey,e)}catch{}}isConsumed(e){try{return!!e&&this.storage()?.getItem(this.consumedKey)===e}catch{return!1}}storage(){try{return globalThis.sessionStorage??null}catch{return null}}};var b={signUp:"/v1/signup",signIn:"/v1/signin",signInWithProvider:"/v1/signin/with/provider",token:"/v1/token",loginWechat:"/v1/login-wechat",loginWechatWeb:"/v1/login-wechat-web",loginWorkBuddy:"/v1/login-workbuddy",loginWorkBuddyMiniProgram:"/v1/login-workbuddy-miniprogram",signOut:"/v1/user/signout",userMe:"/v1/user/me",verification:"/v1/verification",verificationVerify:"/v1/verification/verify",resetPassword:"/v1/reset",sudo:"/v1/user/sudo",userPassword:"/v1/user/password"};function Se(r,e){let t=r??{},s=typeof t.access_token=="string"?t.access_token:"";if(!s)throw Mt("response has no access_token");let n=typeof t.refresh_token=="string"?t.refresh_token:"",i=typeof t.expires_in=="number"?t.expires_in:0;return{accessToken:s,refreshToken:n,expiresAt:e+i*1e3,user:Dt(t)}}a(Se,"parseSession");function Dt(r){let e=r.is_anonymous===!0;return{id:typeof r.sub=="string"?r.sub:"",name:O(r.name),avatarUrl:O(r.avatar_url),isAnonymous:e,raw:r}}a(Dt,"userFromSessionPayload");function Fe(r){let e=r??{},t=typeof e.sub=="string"?e.sub:typeof e.uid=="string"?e.uid:"",s=e.user_metadata??{};return{id:t,email:O(e.email)??O(s.email),phone:O(e.phone_number)??O(e.phone),name:O(e.name),avatarUrl:O(e.avatar_url),isAnonymous:e.is_anonymous===!0||e.scope==="anonymous",raw:e}}a(Fe,"parseUser");function O(r){return typeof r=="string"&&r!==""?r:void 0}a(O,"pickString");function qe(r,e){let t=e??{},s=typeof t.error=="string"?t.error:void 0,n=O(t.error_description)??O(t.message)??O(t.msg)??`HTTP ${r}`;return{kind:Nt(r,s),message:n,status:r,code:s,cause:e}}a(qe,"normalizeHttpError");function Nt(r,e){if(e==="invalid_grant")return"unauthenticated";switch(r){case 400:return"invalid-request";case 401:return"unauthenticated";case 403:return"permission-denied";case 404:return"not-found";case 429:return"rate-limited";case 501:return"unimplemented";case 503:return"backend-unavailable";default:return r>=500?"backend-unavailable":"unknown"}}a(Nt,"errorKind");function K(r){return{kind:"network",message:`request failed before a response was received: ${r instanceof Error?r.message:String(r)}`,status:0,cause:r}}a(K,"normalizeNetworkError");function Mt(r){let e=new Error(`workbuddy-cloud auth: ${r}`);return e.kind="unknown",e.status=0,e}a(Mt,"sessionShapeError");var ce=class{static{a(this,"SessionManager")}store;refresh;emit;isCredentialsRejected;now;inflight=null;signOutEpoch=0;lastFailure=null;constructor(e){this.store=e.store,this.refresh=e.refresh,this.emit=e.emit,this.isCredentialsRejected=e.isCredentialsRejected,this.now=e.now??Date.now}peek(){return this.store.read()}async ensure(){let e=this.store.read();return e?this.isExpiring(e)?e.refreshToken?this.refreshOnce(e):this.abandon():e:null}async forceRefresh(){let e=this.store.read();return e?.refreshToken?this.refreshOnce(e,{ignoreCooldown:!0}):null}commitSignIn(e){return this.lastFailure=null,this.store.write(e),this.emit("SIGNED_IN",e),e}commitUserUpdate(e){return this.store.write(e),this.emit("USER_UPDATED",e),e}clear(){this.signOutEpoch+=1,this.lastFailure=null,this.inflight=null,this.store.clear(),this.emit("SIGNED_OUT",null)}isExpiring(e){return typeof e.expiresAt!="number"?!0:e.expiresAt-this.now()<9e4}refreshOnce(e,t={}){if(this.inflight)return this.inflight;if(!t.ignoreCooldown&&this.inCooldown(e.refreshToken))return Promise.resolve(null);let s=this.doRefresh(e).finally(()=>{this.inflight=null});return this.inflight=s,s}inCooldown(e){let t=this.lastFailure;return t!==null&&t.token===e&&this.now()-t.at<6e4}async doRefresh(e){let t=this.signOutEpoch,s=e.refreshToken,n;try{n=await this.refresh(s)}catch(o){return this.onRefreshFailed(s,o)}if(this.signOutEpoch!==t)return this.store.clear(),null;let i=this.store.read();return i&&i.refreshToken!==s?i:(this.lastFailure=null,this.store.write(n),this.emit("TOKEN_REFRESHED",n),n)}onRefreshFailed(e,t){return this.isCredentialsRejected(t)?this.abandon():(this.lastFailure={token:e,at:this.now()},null)}abandon(){return this.store.clear(),this.lastFailure=null,this.emit("SIGNED_OUT",null),null}};var Ft="workbuddy-cloud.session.";function ke(){let r=new Map;return{getItem:a(e=>r.get(e)??null,"getItem"),setItem:a((e,t)=>{r.set(e,t)},"setItem"),removeItem:a(e=>{r.delete(e)},"removeItem")}}a(ke,"createMemoryStorage");function We(r){if(r)return r;try{let e="__workbuddy_probe__";return globalThis.localStorage.setItem(e,"1"),globalThis.localStorage.removeItem(e),globalThis.localStorage}catch{return ke()}}a(We,"resolveStorage");var ue=class{static{a(this,"SessionStore")}storage;key;constructor(e,t){this.storage=e,this.key=Ft+t}read(){let e;try{e=this.storage.getItem(this.key)}catch{return null}if(!e)return null;try{let t=JSON.parse(e);return qt(t)?t:this.discard()}catch{return this.discard()}}write(e){try{this.storage.setItem(this.key,JSON.stringify(e))}catch{}}clear(){try{this.storage.removeItem(this.key)}catch{}}discard(){return this.clear(),null}};function qt(r){if(!r||typeof r!="object")return!1;let e=r;return typeof e.accessToken=="string"&&e.accessToken!==""&&typeof e.refreshToken=="string"&&typeof e.expiresAt=="number"&&!!e.user&&typeof e.user=="object"}a(qt,"isStoredSession");function B(r,e){let t=r.email??"",s=r.phone??"";return!!t==!!s?{data:null,error:{kind:"invalid-request",message:`${e} requires exactly one of email or phone`,status:0}}:{data:t?{kind:"email",value:t,username:t}:{kind:"phone",value:s,username:Wt(s)},error:null}}a(B,"resolveAuthIdentifier");function Wt(r){let t=r.replace(/\D/g,"");return t.startsWith("0086")?t=t.slice(4):t.startsWith("86")&&t.length===13&&(t=t.slice(2)),/^1\d{10}$/.test(t)?`+86 ${t}`:r}a(Wt,"normalizePhone");var He="wx907c65e5e107ddcf",Ht="subpackages/secondary/oauth-authorize/index";var de=class{static{a(this,"WorkBuddyMiniProgramAuth")}storage;platform;exchange;key;starting;exchanges=new Map;constructor(e,t,s,n){this.storage=t,this.platform=s,this.exchange=n,this.key=`workbuddy-cloud.miniprogram-workbuddy.${e}`}async signIn(e){if(this.starting)return this.starting;let t=this.start(e);this.starting=t;try{return await t}finally{this.starting=void 0}}async start(e){if(typeof e?.redirectPath!="string"||!e.redirectPath.trim())return P("invalid_request","WorkBuddy login requires redirectPath");let t=this.platform.applicationId;if(typeof t!="string"||!t.trim())return P("invalid_request","WorkBuddy login requires publicConfig.workBuddyOAuthClientId");try{let s=this.platform.getEnvVersion?.(),n=await this.platform.createState(),i={state:n,appId:He,expiresAt:Date.now()+6e5},o=JSON.stringify(i);if(this.storage.setItem(this.key,o),this.storage.getItem(this.key)!==o)return P("storage_unavailable","Could not persist WorkBuddy login; sign in again");let c=await this.platform.navigate({appId:He,path:`${Ht}?client_id=${encodeURIComponent(t)}&redirect_uri=${encodeURIComponent(e.redirectPath)}&state=${encodeURIComponent(n)}`+(s?`&envVersion=${s}`:""),envVersion:"release"});return c.error&&this.storage.removeItem(this.key),c}catch(s){return P("miniprogram_login_failed",xe(s))}}async handleCallback(e){let t=e?.referrerInfo,s=Ke(t?.extraData);if(!s||!s.code&&!s.error)return{data:null,error:null};let n=typeof s.state=="string"?this.exchanges.get(s.state):void 0;if(n)return t?.appId===n.appId?n.task:P("invalid_request","WorkBuddy callback does not match the login source");let i;try{i=this.readPending()}catch(c){return P("storage_unavailable",xe(c))}if(!i)return{data:null,error:null};if(typeof s.state!="string"||!s.state)return P("invalid_request","WorkBuddy callback requires state");if(t?.appId!==i.appId||s.state!==i.state)return P("invalid_request","WorkBuddy callback does not match the login source or state");if(!(typeof s.code=="string"&&s.code)&&!(typeof s.error=="string"&&s.error))return P("invalid_request","WorkBuddy callback has no authorization code");if(!s.error&&(typeof s.redirect_uri!="string"||!s.redirect_uri.trim()))return P("invalid_request","WorkBuddy callback requires redirect_uri");try{if(this.storage.removeItem(this.key),this.storage.getItem(this.key)!==null)return P("storage_unavailable","Could not consume WorkBuddy login; sign in again")}catch(c){return P("storage_unavailable",xe(c))}if(i.expiresAt<=Date.now())return P("invalid_grant","WorkBuddy login expired; sign in again","unauthenticated");if(s.error)return P(String(s.error),typeof s.error_description=="string"?s.error_description:"WorkBuddy authorization was not completed","permission-denied");let o=this.exchange({code:s.code,state:i.state,shortlink:s.redirect_uri});this.exchanges.set(i.state,{appId:i.appId,task:o});try{return await o}finally{this.exchanges.delete(i.state)}}readPending(){let e=this.storage.getItem(this.key);if(!e)return null;let t=Ke(JSON.parse(e));if(!t||typeof t.state!="string"||typeof t.appId!="string"||typeof t.expiresAt!="number")throw new Error("Invalid saved WorkBuddy login; sign in again");return t}};function Ke(r){return r!==null&&typeof r=="object"&&!Array.isArray(r)?r:null}a(Ke,"record");function P(r,e,t="invalid-request"){return{data:null,error:{kind:t,code:r,message:e,status:0}}}a(P,"failure");function xe(r){return r instanceof Error?r.message:String(r)}a(xe,"describe");var Ge=200;function Je(r,e){let t=Array.from(r);return t.length<=e?r:`${t.slice(0,e).join("")}\u2026`}a(Je,"truncateMessage");function Ee(r){let e=r.get("error");if(!e)return null;let t=r.get("error_description"),s=t?`oauth provider rejected the request: ${e}: ${t}`:`oauth provider rejected the request: ${e}`;return Je(s,Ge)}a(Ee,"oauthProviderRejectMessage");var D=class{static{a(this,"AuthModule")}fetch;baseUrl;sessions;storage;oauthRelayBaseUrl;workBuddyPkce;workBuddyMiniProgram;workBuddyExchanges=new Map;listeners=new Map;nextListenerId=1;constructor(e,t,s={}){this.fetch=t,this.baseUrl=`${e.endpoint}${R.auth}`,this.oauthRelayBaseUrl=e.oauthRelayBaseUrl,this.storage=We(s.storage),this.workBuddyPkce=new ae(e.publishableKey),this.sessions=new ce({store:new ue(this.storage,e.publishableKey),refresh:a(n=>this.exchangeRefreshHandle(n),"refresh"),emit:a((n,i)=>this.notify(n,i),"emit"),isCredentialsRejected:a(n=>le(n)&&Ve(n),"isCredentialsRejected")}),s.workBuddyMiniProgram&&(this.workBuddyMiniProgram=new de(e.publishableKey,this.storage,s.workBuddyMiniProgram,n=>this.postForSession(b.loginWorkBuddyMiniProgram,n)))}async getAccessToken(){return(await this.sessions.ensure())?.accessToken}async signInWithWorkBuddyMiniProgram(e){return this.workBuddyMiniProgram?this.workBuddyMiniProgram.signIn(e):h({kind:"unimplemented",status:0,message:"Use createMiniProgramWorkBuddyCloud for WorkBuddy mini program login"})}async handleWorkBuddyMiniProgramCallback(e){return this.workBuddyMiniProgram?this.workBuddyMiniProgram.handleCallback(e):h({kind:"unimplemented",status:0,message:"Use createMiniProgramWorkBuddyCloud for WorkBuddy mini program login"})}async signInWithPassword(e){if(!e.password)return h(p("signInWithPassword requires a password"));let t=B(e,"signInWithPassword");return t.error?h(t.error):this.postForSession(b.signIn,{username:t.data.username,password:e.password})}async signInWithWechat(e,t){return e?t?this.postForSession(b.loginWechat,{code:e,appid:t}):h(p("signInWithWechat requires appid")):h(p("signInWithWechat requires code"))}async signUp(e){let t=B(e,"signUp");if(t.error)return h(t.error);if(!e.verificationToken)return h(p("signUp requires a verificationToken; run sendOtp + verifyOtp first (the provider rejects username+password-only signup)"));let s={verification_token:e.verificationToken};return t.data.kind==="phone"?s.phone_number=t.data.username:s.email=t.data.username,e.password&&(s.password=e.password),this.postForSession(b.signUp,s)}async sendOtp(e){let t=B(e,"sendOtp");if(t.error)return h(t.error);let s={};t.data.kind==="phone"?(s.phone_number=t.data.username,s.target="ANY"):(s.email=t.data.username,s.usage="email",e.emailRedirectTo&&(s.email_redirect_to=e.emailRedirectTo));let n=await this.request(b.verification,{method:"POST",body:s});if(n.error)return h(n.error);let i=n.data??{},o=typeof i.verification_id=="string"?i.verification_id:"";return o?S({verificationId:o,isExistingUser:i.is_user===!0}):h(p("provider returned no verification_id"))}async signInWithOtp(e){let t=B(e,"signInWithOtp");if(t.error)return h(t.error);let s=await this.sendOtp(e);if(s.error)return h(s.error);let{verificationId:n,isExistingUser:i}=s.data,o=t.data.kind==="phone"?{phone:t.data.username}:{email:t.data.username};return S({verificationId:n,isExistingUser:i,isUser:i,verify:a(({token:c,password:u})=>this.verifyOtp({verificationId:n,token:c,...o,isExistingUser:i,password:u}),"verify")})}async verifyOtp(e){let t=B(e,"verifyOtp");if(t.error)return h(t.error);if(!e.verificationId||!e.token)return h(p("verifyOtp requires verificationId and token"));let s=await this.request(b.verificationVerify,{method:"POST",body:{verification_id:e.verificationId,verification_code:e.token}});if(s.error)return h(s.error);let n=s.data??{},i=typeof n.verification_token=="string"?n.verification_token:"";if(!i)return h(p("provider returned no verification_token"));if(e.isExistingUser)return this.postForSession(b.signIn,{username:t.data.username,verification_token:i});let o=t.data.kind==="phone"?{phone:t.data.value,password:e.password}:{email:t.data.value,password:e.password};return this.signUp({...o,verificationToken:i})}async signInWithOAuth(e){if(!this.oauthRelayBaseUrl)return h(p("signInWithOAuth requires oauthRelayBaseUrl"));if(e.provider!=="google"&&e.provider!=="wechat"&&e.provider!=="workbuddy")return h(p("\u5F53\u524D SDK \u4E0D\u652F\u6301\u8BE5\u767B\u5F55\u65B9\u5F0F\uFF0C\u8BF7\u68C0\u67E5 SDK \u7248\u672C\u4E0E\u767B\u5F55\u914D\u7F6E\u3002"));let t=e.redirectTo??zt();return t?this.startRelayOAuth(e,t):h(p("signInWithOAuth requires redirectTo outside a browser environment"))}parseCallbackQuery(e){try{let t=/^https?:\/\//i.test(e)?new URL(e).search:e;return S(new URLSearchParams(t))}catch{return h(p("oauth callback URL is invalid"))}}async handleOAuthCallback(e){let t=this.parseCallbackQuery(e??ve());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=Ee(s);if(n)return h({kind:"unauthenticated",message:n,status:0});let i=s.get("code");if(!i)return S(null);let o=s.get("state")??"";if(!o)return h(p("oauth callback requires state"));let c=s.get("provider_id");if(c!=="custom-oauth")return h(p("oauth callback requires provider_id=custom-oauth"));let u={provider_id:c,provider_code:i,state:o,provider_params:{state:o}};return this.postForSession(b.signInWithProvider,u)}async handleWechatWebCallback(e){let t=this.parseCallbackQuery(e??ve());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=Ee(s);if(n)return h({kind:"unauthenticated",message:n,status:0});let i=s.get("code");if(!i)return S(null);let o=s.get("state")??"";if(!o)return h(p("oauth callback requires state"));let c=s.get("provider");return c&&c!=="wechat"?h(p("wechat callback requires provider=wechat")):s.get("provider_id")==="custom-oauth"?h(p("wechat callback must not use provider_id=custom-oauth")):this.postForSession(b.loginWechatWeb,{code:i,state:o})}async handleWorkBuddyCallback(e){let t=this.parseCallbackQuery(e??ve());if(t.error||!t.data)return h(t.error??p("oauth callback URL is invalid"));let s=t.data,n=s.get("provider");if(n&&n!=="workbuddy")return S(null);let i=Ee(s);if(i)return this.workBuddyPkce.clearVerifier(),h({kind:"unauthenticated",message:i,status:0});let o=s.get("code");if(!o)return S(null);let c=s.get("state")??"";if(!c)return h(p("workbuddy callback requires state"));if(s.get("provider_id")==="custom-oauth")return h(p("workbuddy callback must not use provider_id=custom-oauth"));if(this.workBuddyPkce.isConsumed(c))return S(null);let u=this.workBuddyExchanges.get(c);if(u)return u;let d=this.workBuddyPkce.readVerifier();if(!d)return h(p("workbuddy callback has no local PKCE verifier; sign in again in this tab"));this.workBuddyPkce.clearVerifier();let l=this.exchangeWorkBuddyCode(o,c,d);this.workBuddyExchanges.set(c,l);try{return await l}finally{this.workBuddyExchanges.delete(c)}}async exchangeWorkBuddyCode(e,t,s){let n=await this.postForSession(b.loginWorkBuddy,{code:e,state:t,code_verifier:s});return n.data&&this.workBuddyPkce.markConsumed(t),n}async resetPasswordForEmail(e){if(!e)return h(p("resetPasswordForEmail requires email"));let t=await this.request(b.verification,{method:"POST",body:{email:e,usage:"PASSWORD_RESET",target:"USER"}});if(t.error)return h(t.error);let s=t.data??{},n=typeof s.verification_id=="string"?s.verification_id:"";return n?S({updateUser:a(async({nonce:i,password:o})=>{let c=await this.request(b.verificationVerify,{method:"POST",body:{verification_id:n,verification_code:i}});if(c.error)return h(c.error);let u=c.data??{},d=typeof u.verification_token=="string"?u.verification_token:"";if(!d)return h(p("provider returned no verification_token"));let l=await this.request(b.resetPassword,{method:"POST",body:{email:e,new_password:o,verification_token:d}});if(l.error)return h(l.error);let f=await this.signInWithPassword({email:e,password:o});return f.error||this.notify("PASSWORD_RECOVERY",f.data),f},"updateUser")}):h(p("provider returned no verification_id"))}async resetPasswordForOld(e){let t=await this.getAccessToken();if(!t)return h({kind:"unauthenticated",message:"no active session",status:0});let s=await this.request(b.sudo,{method:"POST",token:t,body:{password:e.oldPassword}});if(s.error)return h(s.error);let n=s.data??{},i=typeof n.sudo_token=="string"?n.sudo_token:"";if(!i)return h(p("provider returned no sudo_token"));let o=await this.request(b.userPassword,{method:"PATCH",token:t,body:{sudo_token:i,new_password:e.newPassword}});if(o.error)return h(o.error);let c=await this.getSession();return c.data?(this.notify("USER_UPDATED",c.data),S(c.data)):h(c.error??{kind:"unauthenticated",message:"no active session",status:0})}async getSession(){try{return S(await this.sessions.ensure())}catch(e){return h(le(e)?e:K(e))}}async refreshSession(){try{return S(await this.sessions.forceRefresh())}catch(e){return h(le(e)?e:K(e))}}async getUser(){let e=await this.getAccessToken();if(!e)return h({kind:"unauthenticated",message:"no active session",status:0});let t=await this.request(b.userMe,{method:"GET",token:e});return t.error?(Ve(t.error)&&this.sessions.clear(),h(t.error)):S(Fe(t.data))}async signOut(){let e=this.sessions.peek();return e?.accessToken&&await this.request(b.signOut,{method:"POST",body:{},token:e.accessToken}),this.sessions.clear(),S(null)}onAuthStateChange(e){let t=this.nextListenerId++;return this.listeners.set(t,e),ze(e,"INITIAL_SESSION",this.sessions.peek()),()=>{this.listeners.delete(t)}}async startRelayOAuth(e,t){let s;try{s=new URL(t)}catch{return h(p("signInWithOAuth requires an absolute redirectTo URL"))}let n=new URL(`${this.oauthRelayBaseUrl}/authorize`);if(n.searchParams.set("provider",e.provider),n.searchParams.set("callback_url",s.toString()),e.provider==="workbuddy"){let i=await this.createWorkBuddyProof();if(i.error||!i.data)return h(i.error??p("signInWithOAuth could not create PKCE"));n.searchParams.set("code_challenge",i.data),n.searchParams.set("code_challenge_method","S256")}return S({url:n.toString()})}async createWorkBuddyProof(){if(!De())return h(p("workbuddy sign-in requires WebCrypto; it is unavailable in this runtime (an insecure http:// origin disables it \u2014 serve the app over https)"));if(!this.workBuddyPkce.usable())return h(p("workbuddy sign-in requires sessionStorage to keep the PKCE verifier across the redirect; it is unavailable in this runtime"));let e,t;try{e=Ne(),t=await Me(e)}catch(s){return h(p(`workbuddy sign-in could not create a PKCE proof: ${Kt(s)}`))}return this.workBuddyPkce.saveVerifier(e)?S(t):h(p("workbuddy sign-in could not persist the PKCE verifier"))}async exchangeRefreshHandle(e){let t=await this.request(b.token,{method:"POST",body:{grant_type:"refresh_token",refresh_token:e}});if(t.error)throw t.error;return Se(t.data,Date.now())}async postForSession(e,t,s={}){let n=await this.request(e,{method:"POST",body:t,headers:s.headers});if(n.error)return h(n.error);try{return S(this.sessions.commitSignIn(Se(n.data,Date.now())))}catch(i){return h(le(i)?i:K(i))}}async request(e,t){let s={...t.headers};t.body!==void 0&&(s["Content-Type"]="application/json"),t.token&&(s.Authorization=`Bearer ${t.token}`);let n;try{n=await this.fetch(this.baseUrl+e,{method:t.method,headers:s,body:t.body===void 0?void 0:JSON.stringify(t.body)})}catch(o){return h(K(o))}let i=await Vt(n);return n.ok?S(i):h(qe(n.status,i))}notify(e,t){for(let s of this.listeners.values())ze(s,e,t)}};function S(r){return{data:r,error:null}}a(S,"ok");function h(r){return{data:null,error:r}}a(h,"fail");function p(r){return{kind:"invalid-request",message:r,status:0}}a(p,"badRequest");function Kt(r){return Je(r instanceof Error?r.message:String(r),Ge)}a(Kt,"describeError");function le(r){return!!r&&typeof r=="object"&&typeof r.kind=="string"}a(le,"isCloudError");function Ve(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}a(Ve,"rejectedCredentials");async function Vt(r){let e=await r.text();if(!e)return null;try{return JSON.parse(e)}catch{return{message:e}}}a(Vt,"readBody");function ze(r,e,t){try{r(e,t)}catch{}}a(ze,"safeInvoke");function zt(){let r=globalThis.location;return r?r.origin+r.pathname:""}a(zt,"currentPageUrl");function ve(){return globalThis.location?.search??""}a(ve,"currentPageSearch");var Pe=a(r=>Math.min(1e3*2**r,3e4),"getRetryDelay"),Ye=[520,503],_e=["GET","HEAD","OPTIONS"];var I=class extends Error{static{a(this,"PostgrestError")}details;hint;code;constructor(e){super(e.message),this.name="PostgrestError",this.details=e.details,this.hint=e.hint,this.code=e.code}toJSON(){return{name:this.name,message:this.message,details:this.details,hint:this.hint,code:this.code}}};function Xe(r,e){return new Promise(t=>{if(e?.aborted){t();return}let s=setTimeout(()=>{e?.removeEventListener("abort",n),t()},r);function n(){clearTimeout(s),t()}a(n,"onAbort"),e?.addEventListener("abort",n)})}a(Xe,"sleep");function Gt(r,e,t,s){return!(!s||t>=3||!_e.includes(r)||!Ye.includes(e))}a(Gt,"shouldRetry");var V=class{static{a(this,"PostgrestBuilder")}method;url;headers;schema;body;shouldThrowOnError=!1;signal;fetch;isMaybeSingle;shouldStripNulls;urlLengthLimit;retryEnabled=!0;constructor(e){this.method=e.method,this.url=e.url,this.headers=new Headers(e.headers),this.schema=e.schema,this.body=e.body,this.shouldThrowOnError=e.shouldThrowOnError??!1,this.signal=e.signal,this.isMaybeSingle=e.isMaybeSingle??!1,this.shouldStripNulls=e.shouldStripNulls??!1,this.urlLengthLimit=e.urlLengthLimit??8e3,this.retryEnabled=e.retry??!0,e.fetch?this.fetch=e.fetch:this.fetch=fetch}throwOnError(){return this.shouldThrowOnError=!0,this}stripNulls(){if(this.headers.get("Accept")==="text/csv")throw new Error("stripNulls() cannot be used with csv()");return this.shouldStripNulls=!0,this}setHeader(e,t){return this.headers=new Headers(this.headers),this.headers.set(e,t),this}retry(e){return this.retryEnabled=e,this}then(e,t){if(this.schema===void 0||(["GET","HEAD"].includes(this.method)?this.headers.set("Accept-Profile",this.schema):this.headers.set("Content-Profile",this.schema)),this.method!=="GET"&&this.method!=="HEAD"&&this.headers.set("Content-Type","application/json"),this.shouldStripNulls){let o=this.headers.get("Accept");o==="application/vnd.pgrst.object+json"?this.headers.set("Accept","application/vnd.pgrst.object+json;nulls=stripped"):(!o||o==="application/json")&&this.headers.set("Accept","application/vnd.pgrst.array+json;nulls=stripped")}let s=this.fetch,i=a(async()=>{let o=0;for(;;){let c={};this.headers.forEach((d,l)=>{c[l]=d}),o>0&&(c["X-Retry-Count"]=String(o));let u;try{u=await s(this.url.toString(),{method:this.method,headers:c,body:JSON.stringify(this.body,(d,l)=>typeof l=="bigint"?l.toString():l),signal:this.signal})}catch(d){if(d?.name==="AbortError"||d?.code==="ABORT_ERR"||!_e.includes(this.method))throw d;if(this.retryEnabled&&o<3){let l=Pe(o);o++,await Xe(l,this.signal);continue}throw d}if(Gt(this.method,u.status,o,this.retryEnabled)){let d=u.headers?.get("Retry-After")??null,l=d!==null?Math.max(0,parseInt(d,10)||0)*1e3:Pe(o);await u.text(),o++,await Xe(l,this.signal);continue}return await this.processResponse(u)}},"executeWithRetry")();return this.shouldThrowOnError||(i=i.catch(o=>{let c="",u="",d="",l=o?.cause;if(l){let g=l?.message??"",y=l?.code??"";c=`${o?.name??"FetchError"}: ${o?.message}`,c+=`
+
+Caused by: ${l?.name??"Error"}: ${g}`,y&&(c+=` (${y})`),l?.stack&&(c+=`
+${l.stack}`)}else c=o?.stack??"";let f=this.url.toString().length;return o?.name==="AbortError"||o?.code==="ABORT_ERR"?(d="",u="Request was aborted (timeout or manual cancellation)",f>this.urlLengthLimit&&(u+=`. Note: Your request URL is ${f} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)):(l?.name==="HeadersOverflowError"||l?.code==="UND_ERR_HEADERS_OVERFLOW")&&(d="",u="HTTP headers exceeded server limits (typically 16KB)",f>this.urlLengthLimit&&(u+=`. Your request URL is ${f} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)),{success:!1,error:{message:`${o?.name??"FetchError"}: ${o?.message}`,details:c,hint:u,code:d},data:null,count:null,status:0,statusText:""}})),i.then(e,t)}async processResponse(e){let t=null,s=null,n=null,i=e.status,o=e.statusText;if(e.ok){if(this.method!=="HEAD"){let d=await e.text();if(d!=="")if(this.headers.get("Accept")==="text/csv")s=d;else if(this.headers.get("Accept")&&this.headers.get("Accept")?.includes("application/vnd.pgrst.plan+text"))s=d;else try{s=JSON.parse(d)}catch{if(t={message:d},s=null,this.shouldThrowOnError)throw new I({message:d,details:"",hint:"",code:""})}}let c=this.headers.get("Prefer")?.match(/count=(exact|planned|estimated)/),u=e.headers.get("content-range")?.split("/");if(c&&u&&u.length>1&&(n=parseInt(u[1])),this.isMaybeSingle&&Array.isArray(s))if(s.length>1){if(t={code:"PGRST116",details:`Results contain ${s.length} rows, application/vnd.pgrst.object+json requires 1 row`,hint:null,message:"JSON object requested, multiple (or no) rows returned"},s=null,n=null,i=406,o="Not Acceptable",this.shouldThrowOnError)throw new I({...t,hint:t.hint??""})}else s.length===1?s=s[0]:s=null}else{let c=await e.text();try{t=JSON.parse(c),Array.isArray(t)&&e.status===404&&(s=[],t=null,i=200,o="OK")}catch{e.status===404&&c===""?(i=204,o="No Content"):t={message:c}}if(t&&this.shouldThrowOnError)throw new I(t)}return{success:t===null,error:t,data:s,count:n,status:i,statusText:o}}returns(){return this}overrideTypes(){return this}};var z=class extends V{static{a(this,"PostgrestTransformBuilder")}throwOnError(){return super.throwOnError()}select(e){let t=!1,s=(e??"*").split("").map(n=>/\s/.test(n)&&!t?"":(n==='"'&&(t=!t),n)).join("");return this.url.searchParams.set("select",s),this.headers.append("Prefer","return=representation"),this}order(e,{ascending:t=!0,nullsFirst:s,foreignTable:n,referencedTable:i=n}={}){let o=i?`${i}.order`:"order",c=this.url.searchParams.get(o);return this.url.searchParams.set(o,`${c?`${c},`:""}${e}.${t?"asc":"desc"}${s===void 0?"":s?".nullsfirst":".nullslast"}`),this}limit(e,{foreignTable:t,referencedTable:s=t}={}){let n=typeof s>"u"?"limit":`${s}.limit`;return this.url.searchParams.set(n,`${e}`),this}range(e,t,{foreignTable:s,referencedTable:n=s}={}){let i=typeof n>"u"?"offset":`${n}.offset`,o=typeof n>"u"?"limit":`${n}.limit`;return this.url.searchParams.set(i,`${e}`),this.url.searchParams.set(o,`${t-e+1}`),this}abortSignal(e){return this.signal=e,this}single(){return this.headers.set("Accept","application/vnd.pgrst.object+json"),this}maybeSingle(){return this.isMaybeSingle=!0,this}csv(){return this.headers.set("Accept","text/csv"),this}geojson(){return this.headers.set("Accept","application/geo+json"),this}explain({analyze:e=!1,verbose:t=!1,settings:s=!1,buffers:n=!1,wal:i=!1,format:o="text"}={}){let c=[e?"analyze":null,t?"verbose":null,s?"settings":null,n?"buffers":null,i?"wal":null].filter(Boolean).join("|"),u=this.headers.get("Accept")??"application/json";return this.headers.set("Accept",`application/vnd.pgrst.plan+${o}; for="${u}"; options=${c};`),o==="json"?this:this}rollback(){return this.headers.append("Prefer","tx=rollback"),this}returns(){return this}maxAffected(e){return this.headers.append("Prefer","handling=strict"),this.headers.append("Prefer",`max-affected=${e}`),this}};var Ze=new RegExp("[,()]"),A=class extends z{static{a(this,"PostgrestFilterBuilder")}throwOnError(){return super.throwOnError()}eq(e,t){return this.url.searchParams.append(e,`eq.${t}`),this}neq(e,t){return this.url.searchParams.append(e,`neq.${t}`),this}gt(e,t){return this.url.searchParams.append(e,`gt.${t}`),this}gte(e,t){return this.url.searchParams.append(e,`gte.${t}`),this}lt(e,t){return this.url.searchParams.append(e,`lt.${t}`),this}lte(e,t){return this.url.searchParams.append(e,`lte.${t}`),this}like(e,t){return this.url.searchParams.append(e,`like.${t}`),this}likeAllOf(e,t){return this.url.searchParams.append(e,`like(all).{${t.join(",")}}`),this}likeAnyOf(e,t){return this.url.searchParams.append(e,`like(any).{${t.join(",")}}`),this}ilike(e,t){return this.url.searchParams.append(e,`ilike.${t}`),this}ilikeAllOf(e,t){return this.url.searchParams.append(e,`ilike(all).{${t.join(",")}}`),this}ilikeAnyOf(e,t){return this.url.searchParams.append(e,`ilike(any).{${t.join(",")}}`),this}regexMatch(e,t){return this.url.searchParams.append(e,`match.${t}`),this}regexIMatch(e,t){return this.url.searchParams.append(e,`imatch.${t}`),this}is(e,t){return this.url.searchParams.append(e,`is.${t}`),this}isDistinct(e,t){return this.url.searchParams.append(e,`isdistinct.${t}`),this}in(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ze.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`in.(${s})`),this}notIn(e,t){let s=Array.from(new Set(t)).map(n=>typeof n=="string"&&Ze.test(n)?`"${n}"`:`${n}`).join(",");return this.url.searchParams.append(e,`not.in.(${s})`),this}contains(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cs.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cs.{${t.join(",")}}`):this.url.searchParams.append(e,`cs.${JSON.stringify(t)}`),this}containedBy(e,t){return typeof t=="string"?this.url.searchParams.append(e,`cd.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cd.{${t.join(",")}}`):this.url.searchParams.append(e,`cd.${JSON.stringify(t)}`),this}rangeGt(e,t){return this.url.searchParams.append(e,`sr.${t}`),this}rangeGte(e,t){return this.url.searchParams.append(e,`nxl.${t}`),this}rangeLt(e,t){return this.url.searchParams.append(e,`sl.${t}`),this}rangeLte(e,t){return this.url.searchParams.append(e,`nxr.${t}`),this}rangeAdjacent(e,t){return this.url.searchParams.append(e,`adj.${t}`),this}overlaps(e,t){return typeof t=="string"?this.url.searchParams.append(e,`ov.${t}`):this.url.searchParams.append(e,`ov.{${t.join(",")}}`),this}textSearch(e,t,{config:s,type:n}={}){let i="";n==="plain"?i="pl":n==="phrase"?i="ph":n==="websearch"&&(i="w");let o=s===void 0?"":`(${s})`;return this.url.searchParams.append(e,`${i}fts${o}.${t}`),this}match(e){return Object.entries(e).filter(([t,s])=>s!==void 0).forEach(([t,s])=>{this.url.searchParams.append(t,`eq.${s}`)}),this}not(e,t,s){return this.url.searchParams.append(e,`not.${t}.${s}`),this}or(e,{foreignTable:t,referencedTable:s=t}={}){let n=s?`${s}.or`:"or";return this.url.searchParams.append(n,`(${e})`),this}filter(e,t,s){return this.url.searchParams.append(e,`${t}.${s}`),this}};var G=class{static{a(this,"PostgrestQueryBuilder")}url;headers;schema;signal;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,urlLengthLimit:i=8e3,retry:o}){this.url=e,this.headers=new Headers(t),this.schema=s,this.fetch=n,this.urlLengthLimit=i,this.retry=o}cloneRequestState(){return{url:new URL(this.url.toString()),headers:new Headers(this.headers)}}select(e,t){let{head:s=!1,count:n}=t??{},i=s?"HEAD":"GET",o=!1,c=(e??"*").split("").map(l=>/\s/.test(l)&&!o?"":(l==='"'&&(o=!o),l)).join(""),{url:u,headers:d}=this.cloneRequestState();return u.searchParams.set("select",c),n&&d.append("Prefer",`count=${n}`),new A({method:i,url:u,headers:d,schema:this.schema,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}insert(e,{count:t,defaultToNull:s=!0}={}){let n="POST",{url:i,headers:o}=this.cloneRequestState();if(t&&o.append("Prefer",`count=${t}`),s||o.append("Prefer","missing=default"),Array.isArray(e)){let c=e.reduce((u,d)=>u.concat(Object.keys(d)),[]);if(c.length>0){let u=[...new Set(c)].map(d=>`"${d}"`);i.searchParams.set("columns",u.join(","))}}return new A({method:n,url:i,headers:o,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}upsert(e,{onConflict:t,ignoreDuplicates:s=!1,count:n,defaultToNull:i=!0}={}){let o="POST",{url:c,headers:u}=this.cloneRequestState();if(u.append("Prefer",`resolution=${s?"ignore":"merge"}-duplicates`),t!==void 0&&c.searchParams.set("on_conflict",t),n&&u.append("Prefer",`count=${n}`),i||u.append("Prefer","missing=default"),Array.isArray(e)){let d=e.reduce((l,f)=>l.concat(Object.keys(f)),[]);if(d.length>0){let l=[...new Set(d)].map(f=>`"${f}"`);c.searchParams.set("columns",l.join(","))}}return new A({method:o,url:c,headers:u,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}update(e,{count:t}={}){let s="PATCH",{url:n,headers:i}=this.cloneRequestState();return t&&i.append("Prefer",`count=${t}`),new A({method:s,url:n,headers:i,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}delete({count:e}={}){let t="DELETE",{url:s,headers:n}=this.cloneRequestState();return e&&n.append("Prefer",`count=${e}`),new A({method:t,url:s,headers:n,schema:this.schema,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var N=class r{static{a(this,"PostgrestClient")}url;headers;schemaName;fetch;urlLengthLimit;retry;constructor(e,{headers:t={},schema:s,fetch:n,timeout:i,urlLengthLimit:o=8e3,retry:c}={}){this.url=e,this.headers=new Headers(t),this.schemaName=s,this.urlLengthLimit=o;let u=n??globalThis.fetch;i!==void 0&&i>0?this.fetch=(d,l)=>{let f=new AbortController,g=setTimeout(()=>f.abort(),i),y=l?.signal;if(y){if(y.aborted)return clearTimeout(g),u(d,l);let ne=a(()=>{clearTimeout(g),f.abort()},"abortHandler");return y.addEventListener("abort",ne,{once:!0}),u(d,{...l,signal:f.signal}).finally(()=>{clearTimeout(g),y.removeEventListener("abort",ne)})}return u(d,{...l,signal:f.signal}).finally(()=>clearTimeout(g))}:this.fetch=u,this.retry=c}from(e){if(!e||typeof e!="string"||e.trim()==="")throw new Error("Invalid relation name: relation must be a non-empty string.");let t=new URL(`${this.url}/${e}`);return new G(t,{headers:new Headers(this.headers),schema:this.schemaName,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}schema(e){return new r(this.url,{headers:this.headers,schema:e,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}rpc(e,t={},{head:s=!1,get:n=!1,count:i}={}){let o,c=new URL(`${this.url}/rpc/${e}`),u,d=a(g=>g!==null&&typeof g=="object"&&(!Array.isArray(g)||g.some(d)),"_isObject"),l=s&&Object.values(t).some(d);l?(o="POST",u=t):s||n?(o=s?"HEAD":"GET",Object.entries(t).filter(([g,y])=>y!==void 0).map(([g,y])=>[g,Array.isArray(y)?`{${y.join(",")}}`:`${y}`]).forEach(([g,y])=>{c.searchParams.append(g,y)})):(o="POST",u=t);let f=new Headers(this.headers);return l?f.set("Prefer",i?`count=${i},return=minimal`:"return=minimal"):i&&f.set("Prefer",`count=${i}`),new A({method:o,url:c,headers:f,schema:this.schemaName,body:u,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}};var J=class{static{a(this,"WorkBuddyDatabaseModule")}client;constructor(e,t){this.client=new N(`${e.endpoint}${R.database}`,{fetch:t}),this.from=this.client.from.bind(this.client),this.rpc=this.client.rpc.bind(this.client)}from;rpc;get url(){return this.client.url}};function et(r,e){return new J(r,e)}a(et,"createDatabaseModule");var x=class extends Error{static{a(this,"CloudOpenAIError")}error;status;requestId;retryAfterMs;constructor(e,t={}){let s=typeof e=="string"?{message:e,type:"server_error",param:null,code:null}:e;super(s.message),this.name="CloudOpenAIError",this.error=s,this.status=t.status,this.requestId=t.requestId,this.retryAfterMs=t.retryAfterMs,t.cause!==void 0&&("cause"in this||Object.defineProperty(this,"cause",{value:t.cause,writable:!1,enumerable:!1,configurable:!1}))}};function tt(r){if(!r)return;let e=r.trim(),t=Number(e);if(!isNaN(t)&&t>=0&&Number.isInteger(t))return t*1e3;let s=Date.parse(e);if(!isNaN(s)){let n=s-Date.now();return n>0?n:0}}a(tt,"parseRetryAfter");function m(...r){return r.find(e=>typeof e=="string"&&e.length>0)}a(m,"stringField");function k(...r){return r.find(e=>typeof e=="number"&&Number.isFinite(e))}a(k,"numberField");function E(...r){return r.find(e=>typeof e=="boolean")}a(E,"booleanField");function rt(...r){for(let e of r){if(typeof e=="number"&&Number.isFinite(e))return e;if(e!==null&&typeof e=="object"&&!Array.isArray(e))return Jt(e)}}a(rt,"contextWindowField");function Jt(r){let e={};for(let[t,s]of Object.entries(r)){if(t==="supportedLengths"){Array.isArray(s)&&(e.supportedLengths=s.filter(n=>typeof n=="number"&&Number.isFinite(n)));continue}if(t==="defaultLength"){typeof s=="number"&&Number.isFinite(s)&&(e.defaultLength=s);continue}Object.defineProperty(e,t,{value:s,writable:!0,enumerable:!0,configurable:!0})}return e}a(Jt,"normalizeContextWindowObject");function st(r){if(!r||typeof r!="object")return;let e=r,t=Array.isArray(e.input)?e.input.filter(n=>typeof n=="string"):void 0,s=Array.isArray(e.output)?e.output.filter(n=>typeof n=="string"):void 0;return t?.length||s?.length?{...t?.length?{input:t}:{},...s?.length?{output:s}:{}}:void 0}a(st,"modalitiesField");function nt(r){if(!r||typeof r!="object")return;let t=Object.entries(r).filter(([,s])=>typeof s=="boolean");return t.length?Object.fromEntries(t):void 0}a(nt,"capabilitiesField");function it(r){if(!r||typeof r!="object")return;let e=r,t={...m(e.currency)?{currency:e.currency}:{},...k(e.inputPerMillionTokens)!==void 0?{inputPerMillionTokens:e.inputPerMillionTokens}:{},...k(e.outputPerMillionTokens)!==void 0?{outputPerMillionTokens:e.outputPerMillionTokens}:{},...m(e.displayText)?{displayText:e.displayText}:{}};return Object.keys(t).length?t:void 0}a(it,"pricingField");function ot(r){if(!r||typeof r!="object")return;let e=r,t={},s=m(e.effort);s!==void 0&&(t.effort=s);let n=m(e.defaultEffort);n!==void 0&&(t.defaultEffort=n),Array.isArray(e.supportedEfforts)&&(t.supportedEfforts=e.supportedEfforts.filter(c=>typeof c=="string"));let i=m(e.summary);i!==void 0&&(i==="auto"||i==="concise"||i==="detailed")&&(t.summary=i);let o=E(e.canDisableThinking);return o!==void 0&&(t.canDisableThinking=o),Object.keys(t).length>0?t:void 0}a(ot,"reasoningField");function Yt(r){let e=m(r.id,r.ID);if(!e)return null;let t=E(r.enabled,r.Enabled),s=E(r.disabled,r.Disabled),n,i;return t!==void 0?(n=t,s!==void 0&&(i=s)):s!==void 0?(i=s,n=!s):n=!0,{id:e,name:m(r.name,r.Name)??e,...m(r.provider,r.Provider)?{provider:m(r.provider,r.Provider)}:{},...m(r.vendor,r.Vendor)?{vendor:m(r.vendor,r.Vendor)}:{},...m(r.family,r.Family)?{family:m(r.family,r.Family)}:{},...m(r.version,r.Version)?{version:m(r.version,r.Version)}:{},...m(r.description,r.Description)?{description:m(r.description,r.Description)}:{},...m(r.descriptionZh,r.DescriptionZh)?{descriptionZh:m(r.descriptionZh,r.DescriptionZh)}:{},...m(r.descriptionEn,r.DescriptionEn)?{descriptionEn:m(r.descriptionEn,r.DescriptionEn)}:{},...m(r.iconUrl,r.IconURL)?{iconUrl:m(r.iconUrl,r.IconURL)}:{},...rt(r.contextWindow,r.ContextWindow)!==void 0?{contextWindow:rt(r.contextWindow,r.ContextWindow)}:{},...k(r.maxInputTokens,r.MaxInputTokens)!==void 0?{maxInputTokens:k(r.maxInputTokens,r.MaxInputTokens)}:{},...k(r.maxOutputTokens,r.MaxOutputTokens)!==void 0?{maxOutputTokens:k(r.maxOutputTokens,r.MaxOutputTokens)}:{},...st(r.modalities??r.Modalities)?{modalities:st(r.modalities??r.Modalities)}:{},...nt(r.capabilities??r.Capabilities)?{capabilities:nt(r.capabilities??r.Capabilities)}:{},enabled:n,...i!==void 0?{disabled:i}:{},...E(r.isDefault,r.IsDefault)!==void 0?{isDefault:E(r.isDefault,r.IsDefault)}:{},...k(r.sortOrder,r.SortOrder)!==void 0?{sortOrder:k(r.sortOrder,r.SortOrder)}:{},...it(r.pricing??r.Pricing)?{pricing:it(r.pricing??r.Pricing)}:{},...m(r.credits,r.Credits)?{credits:m(r.credits,r.Credits)}:{},...k(r.maxAllowedSize,r.MaxAllowedSize)!==void 0?{maxAllowedSize:k(r.maxAllowedSize,r.MaxAllowedSize)}:{},...E(r.disabledMultimodal,r.DisabledMultimodal)!==void 0?{disabledMultimodal:E(r.disabledMultimodal,r.DisabledMultimodal)}:{},...E(r.supportsImages,r.SupportsImages)!==void 0?{supportsImages:E(r.supportsImages,r.SupportsImages)}:{},...E(r.supportsToolCall,r.SupportsToolCall)!==void 0?{supportsToolCall:E(r.supportsToolCall,r.SupportsToolCall)}:{},...E(r.supportsReasoning,r.SupportsReasoning)!==void 0?{supportsReasoning:E(r.supportsReasoning,r.SupportsReasoning)}:{},...E(r.onlyReasoning,r.OnlyReasoning)!==void 0?{onlyReasoning:E(r.onlyReasoning,r.OnlyReasoning)}:{},...ot(r.reasoning??r.Reasoning)?{reasoning:ot(r.reasoning??r.Reasoning)}:{},...k(r.temperature,r.Temperature)!==void 0?{temperature:k(r.temperature,r.Temperature)}:{},...k(r.top_k,r.Top_K)!==void 0?{top_k:k(r.top_k,r.Top_K)}:{},...k(r.top_p,r.Top_P)!==void 0?{top_p:k(r.top_p,r.Top_P)}:{},...k(r.repetition_penalty,r.Repetition_Penalty)!==void 0?{repetition_penalty:k(r.repetition_penalty,r.Repetition_Penalty)}:{}}}a(Yt,"normalizeModel");function Te(r){return r.name||r.id}a(Te,"getModelDisplayName");function Oe(r,e){return r.capabilities?.[e]}a(Oe,"getModelCapability");var he=class{static{a(this,"ModelsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}async list(e){let t;try{t=await this.fetch(`${this.baseUrl}/models`,{method:"GET",headers:{Accept:"application/json"},signal:e})}catch(c){throw c instanceof Error&&c.name==="AbortError"?c:new x({message:`Network error: ${c?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:c})}if(!t.ok)throw await Ae(t);let s=await t.text(),n;try{n=JSON.parse(s)}catch{throw new x({message:"Failed to parse models response: invalid JSON",type:"server_error",param:null,code:"gateway_invalid_response"})}let i=Array.isArray(n)?n:Array.isArray(n?.data)?n.data:[],o=[];for(let c of i){let u=Yt(c);u&&o.push(u)}return o}};async function Ae(r){let e=await r.text().catch(()=>""),t;try{let i=JSON.parse(e);if(i&&typeof i=="object"&&i.error){let o=i.error;t={message:typeof o.message=="string"?o.message:`HTTP ${r.status}`,type:typeof o.type=="string"?o.type:"server_error",param:o.param===void 0?null:o.param,code:o.code===void 0?null:o.code}}else t={message:typeof i=="string"?i:`HTTP ${r.status}`,type:"server_error",param:null,code:null}}catch{t={message:e||`HTTP ${r.status}`,type:"server_error",param:null,code:null}}let s=r.headers.get("x-request-id")??void 0,n=tt(r.headers.get("retry-after"));return new x(t,{status:r.status,requestId:s,retryAfterMs:n})}a(Ae,"httpError");var fe=class{static{a(this,"Utf8Decoder")}codePoint=0;bytesNeeded=0;bytesSeen=0;lowerBoundary=128;upperBoundary=191;bomSeen=!1;streaming=!1;resetSequence(){this.codePoint=0,this.bytesNeeded=0,this.bytesSeen=0,this.lowerBoundary=128,this.upperBoundary=191}decode(e=new Uint8Array,t={}){this.streaming||(this.resetSequence(),this.bomSeen=!1),this.streaming=t.stream===!0;let s="",n=a(i=>{!this.bomSeen&&(this.bomSeen=!0,i===65279)||(s+=String.fromCodePoint(i))},"emit");for(let i=0;i<e.length;i++){let o=e[i];if(this.bytesNeeded===0){o<=127?n(o):o>=194&&o<=223?(this.bytesNeeded=1,this.codePoint=o&31):o>=224&&o<=239?(this.bytesNeeded=2,this.codePoint=o&15,o===224&&(this.lowerBoundary=160),o===237&&(this.upperBoundary=159)):o>=240&&o<=244?(this.bytesNeeded=3,this.codePoint=o&7,o===240&&(this.lowerBoundary=144),o===244&&(this.upperBoundary=143)):n(65533);continue}if(o<this.lowerBoundary||o>this.upperBoundary){this.resetSequence(),n(65533),i--;continue}this.lowerBoundary=128,this.upperBoundary=191,this.codePoint=this.codePoint<<6|o&63,this.bytesSeen++,this.bytesSeen===this.bytesNeeded&&(n(this.codePoint),this.resetSequence())}return!this.streaming&&this.bytesNeeded>0&&(n(65533),this.resetSequence()),s}};var Xt=class{static{a(this,"SSEDecoder")}event=null;dataParts=[];decode(e){let t=e;if(t.endsWith("\r")&&(t=t.slice(0,-1)),t===""){if(this.event===null&&this.dataParts.length===0)return null;let o={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],o}if(t.startsWith(":"))return null;let s=t.indexOf(":"),n,i;if(s===-1)n=t,i="";else{n=t.slice(0,s);let o=t.slice(s+1);o.startsWith(" ")&&(o=o.slice(1)),i=o}return n==="event"?this.event=i:n==="data"&&this.dataParts.push(i),null}flush(){if(this.event===null&&this.dataParts.length===0)return null;let e={event:this.event,data:this.dataParts.join(`
+`)};return this.event=null,this.dataParts=[],e}},Qt=class{static{a(this,"LineDecoder")}buffer=new Uint8Array;decoder;constructor(){this.decoder=typeof TextDecoder>"u"?new fe:new TextDecoder("utf-8")}decode(e){let t=new Uint8Array(this.buffer.length+e.length);t.set(this.buffer),t.set(e,this.buffer.length),this.buffer=t;let s=[],n=0;for(let i=0;i<this.buffer.length;i++)if(this.buffer[i]===10||this.buffer[i]===13){let o=this.buffer.subarray(n,i),c=this.decoder.decode(o,{stream:!0});s.push(c),this.buffer[i]===13&&i+1<this.buffer.length&&this.buffer[i+1]===10&&i++,n=i+1}return n>0&&(this.buffer=this.buffer.slice(n)),s}flush(){if(this.buffer.length===0){let t=this.decoder.decode();return t?[t]:[]}let e=this.decoder.decode(this.buffer,{stream:!1});return this.buffer=new Uint8Array,e?[e]:[]}},at="[DONE]";async function*ct(r,e){let t=new Xt,s=new Qt,n=r.getReader(),i=!1,o=a(()=>{i=!0,n.cancel().catch(()=>{})},"onAbort");if(e){if(e.aborted)return;e.addEventListener("abort",o,{once:!0})}try{for(;;){if(i)return;let u;try{u=await n.read()}catch(f){if(i||f instanceof Error&&f.name==="AbortError")return;throw f}let{done:d,value:l}=u;if(d)break;for(let f of s.decode(l)){let g=t.decode(f);g&&(yield g)}}for(let u of s.flush()){let d=t.decode(u);d&&(yield d)}let c=t.flush();c&&(yield c)}finally{e&&e.removeEventListener("abort",o);try{n.releaseLock()}catch{}}}a(ct,"iterSSEEvents");function Zt(r,e){let t=e?{requestId:e}:{};try{let s=JSON.parse(r);if(s&&typeof s=="object"){let n=s.error??s;if(n&&typeof n=="object")return new x({message:typeof n.message=="string"?n.message:"Stream error",type:typeof n.type=="string"?n.type:"server_error",param:n.param===void 0?null:n.param,code:n.code===void 0?null:n.code},t)}}catch{}return new x({message:r||"Stream error",type:"server_error",param:null,code:null},t)}a(Zt,"extractSSEError");var pe=class{static{a(this,"ChatCompletionsAPI")}baseUrl;fetch;constructor(e,t){this.baseUrl=e,this.fetch=t}create(e){if(e.stream!==!0)throw new x({message:"stream must be true; non-streaming chat completions are not supported",type:"invalid_request_error",param:"stream",code:"request_stream_required"});return this.createStreaming(e)}async*createStreaming(e){let{signal:t,conversationId:s,...n}=e;n.stream=!0;let i;try{i=await this.fetch(`${this.baseUrl}/chat/completions`,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json",...s!==void 0?{"X-Conversation-ID":s}:{}},body:JSON.stringify(n),signal:t})}catch(d){if(d instanceof Error&&d.name==="AbortError")return;throw new x({message:`Network error: ${d?.message??"unknown"}`,type:"server_error",param:null,code:"gateway_network_error"},{cause:d})}if(!i.ok)throw await Ae(i);if(!i.body)throw new x({message:"Response body is empty \u2014 streaming not supported",type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:i.headers.get("x-request-id")??void 0});let o=i.headers.get("x-request-id")??void 0,c=!1,u=!1;try{for await(let d of ct(i.body,t)){if(d.event==="error")throw u=!0,Zt(d.data,o);if(d.event===null||d.event===""){if(d.data===at){c=!0;return}if(!d.data)continue;let l;try{l=JSON.parse(d.data)}catch{throw u=!0,new x({message:`Failed to parse SSE data: ${d.data}`,type:"server_error",param:null,code:"gateway_invalid_response"},{requestId:o})}if(l&&typeof l=="object"&&"error"in l){u=!0;let f=l.error;throw new x({message:typeof f?.message=="string"?f.message:"Stream error",type:typeof f?.type=="string"?f.type:"server_error",param:f?.param===void 0?null:f.param,code:f?.code===void 0?null:f.code},{requestId:o})}yield l}}}catch(d){if(d instanceof Error&&d.name==="AbortError")return;throw u=!0,d}if(!c&&!u&&!t?.aborted)throw new x({message:"\u6D41\u5F0F\u54CD\u5E94\u4E2D\u65AD\u3002",type:"server_error",param:null,code:"gateway_stream_interrupted"},{requestId:o})}};var M=class{static{a(this,"LlmModule")}fetch;baseUrl;models;chat;constructor(e,t){this.fetch=t,this.baseUrl=`${e.endpoint}${R.llm}`,this.models=new he(this.baseUrl,this.fetch),this.chat={completions:new pe(this.baseUrl,this.fetch)}}};var F=class extends Error{static{a(this,"StorageError")}__isStorageError=!0;namespace;status;statusCode;constructor(e,t="storage",s,n){super(e),this.namespace=t,this.name=t==="vectors"?"StorageVectorsError":"StorageError",this.status=s,this.statusCode=n}toJSON(){return{name:this.name,message:this.message,status:this.status,statusCode:this.statusCode}}};function U(r){return typeof r=="object"&&r!==null&&"__isStorageError"in r}a(U,"isStorageError");var C=class extends F{static{a(this,"StorageApiError")}status;statusCode;code;constructor(e,t,s,n="storage",i){super(e,n,t,s),this.name=n==="vectors"?"StorageVectorsApiError":"StorageApiError",this.status=t,this.statusCode=s,this.code=i}toJSON(){return{...super.toJSON(),code:this.code}}},q=class extends F{static{a(this,"StorageUnknownError")}originalError;constructor(e,t,s="storage"){super(e,s),this.name=s==="vectors"?"StorageVectorsUnknownError":"StorageUnknownError",this.originalError=t}};function L(r,e,t){let s={...r},n=e.toLowerCase();for(let i of Object.keys(s))i.toLowerCase()===n&&delete s[i];return s[n]=t,s}a(L,"setHeader");function ut(r){let e={};for(let[t,s]of Object.entries(r))e[t.toLowerCase()]=s;return e}a(ut,"normalizeHeaders");var dt=a(r=>r?(...e)=>r(...e):(...e)=>fetch(...e),"resolveFetch");var lt=a(r=>{if(typeof r!="object"||r===null)return!1;let e=Object.getPrototypeOf(r);return(e===null||e===Object.prototype||Object.getPrototypeOf(e)===null)&&!(Symbol.toStringTag in r)&&!(Symbol.iterator in r)},"isPlainObject"),me=a(r=>{if(Array.isArray(r))return r.map(t=>me(t));if(typeof r=="function"||r!==Object(r))return r;let e={};return Object.entries(r).forEach(([t,s])=>{let n=t.replace(/([-_][a-z])/gi,i=>i.toUpperCase().replace(/[-_]/g,""));e[n]=me(s)}),e},"recursiveToCamel");var ht=a(r=>r.split("/").map(encodeURIComponent).join("/"),"encodeStoragePath");var ft=a(r=>{if(typeof r=="object"&&r!==null){let e=r;if(typeof e.msg=="string")return e.msg;if(typeof e.message=="string")return e.message;if(typeof e.error_description=="string")return e.error_description;if(typeof e.error=="string")return e.error;if(typeof e.error=="object"&&e.error!==null){let t=e.error;if(typeof t.message=="string")return t.message}}return JSON.stringify(r)},"_getErrorMessage"),er=a(async(r,e,t,s)=>{if(r!==null&&typeof r=="object"&&"json"in r&&typeof r.json=="function"){let i=r,o=parseInt(String(i.status),10);Number.isFinite(o)||(o=500),i.json().then(c=>{let u=c?.statusCode||c?.code||o+"";e(new C(ft(c),o,u,s,c?.code))}).catch(()=>{let c=o+"",u=i.statusText||`HTTP ${o} error`;e(new C(u,o,c,s))})}else e(new q(ft(r),r,s))},"handleError"),tr=a((r,e,t,s)=>{let n={method:r,headers:e?.headers||{}};if(r==="GET"||r==="HEAD"||!s)return{...n,...t};if(lt(s)){let i=e?.headers||{},o;for(let[c,u]of Object.entries(i))c.toLowerCase()==="content-type"&&(o=u);n.headers=L(i,"Content-Type",o??"application/json"),n.body=JSON.stringify(s)}else n.body=s;return e?.duplex&&(n.duplex=e.duplex),{...n,...t}},"_getRequestParams");async function Y(r,e,t,s,n,i,o){return new Promise((c,u)=>{r(t,tr(e,s,n,i)).then(d=>{if(!d.ok)throw d;if(s?.noResolveJson)return d;if(o==="vectors"){let l=d.headers.get("content-type");if(d.headers.get("content-length")==="0"||d.status===204)return{};if(!l||!l.includes("application/json"))return{}}return d.json()}).then(d=>c(d)).catch(d=>er(d,u,s,o))})}a(Y,"_handleRequest");function pt(r="storage"){return{get:a(async(e,t,s,n)=>Y(e,"GET",t,s,n,void 0,r),"get"),post:a(async(e,t,s,n,i)=>Y(e,"POST",t,n,i,s,r),"post"),put:a(async(e,t,s,n,i)=>Y(e,"PUT",t,n,i,s,r),"put"),head:a(async(e,t,s,n)=>Y(e,"HEAD",t,{...s,noResolveJson:!0},n,void 0,r),"head"),remove:a(async(e,t,s,n,i)=>Y(e,"DELETE",t,n,i,s,r),"remove")}}a(pt,"createFetchApi");var rr=pt("storage"),{get:Re,post:$,put:$e,head:mt,remove:Ue}=rr,Ms=pt("vectors");var X=class{static{a(this,"BaseApiClient")}url;headers;fetch;shouldThrowOnError=!1;namespace;constructor(e,t={},s,n="storage"){this.url=e,this.headers=ut(t),this.fetch=dt(s),this.namespace=n}throwOnError(){return this.shouldThrowOnError=!0,this}setHeader(e,t){return this.headers=L(this.headers,e,t),this}async handleOperation(e){try{return{data:await e(),error:null}}catch(t){if(this.shouldThrowOnError)throw t;if(U(t))return{data:null,error:t};throw t}}};var Q=class{static{a(this,"StreamDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="StreamDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:(await this.downloadFn()).body,error:null}}catch(e){if(this.shouldThrowOnError)throw e;if(U(e))return{data:null,error:e};throw e}}};var Z=class{static{a(this,"BlobDownloadBuilder")}downloadFn;shouldThrowOnError;[Symbol.toStringTag]="BlobDownloadBuilder";promise=null;constructor(e,t){this.downloadFn=e,this.shouldThrowOnError=t}asStream(){return new Q(this.downloadFn,this.shouldThrowOnError)}then(e,t){return this.getPromise().then(e,t)}catch(e){return this.getPromise().catch(e)}finally(e){return this.getPromise().finally(e)}getPromise(){return this.promise||(this.promise=this.execute()),this.promise}async execute(){try{return{data:await(await this.downloadFn()).blob(),error:null}}catch(e){if(this.shouldThrowOnError)throw e;if(U(e))return{data:null,error:e};throw e}}};var Ie={limit:100,offset:0,sortBy:{column:"name",order:"asc"}},gt={cacheControl:"3600",contentType:"text/plain;charset=UTF-8",upsert:!1},ee=class extends X{static{a(this,"StorageFileApi")}bucketId;constructor(e,t={},s,n){super(e,t,n,"storage"),this.bucketId=s}async uploadOrUpdate(e,t,s,n){return this.handleOperation(async()=>{let i,o={...gt,...n},c={...this.headers,...e==="POST"&&{"x-upsert":String(o.upsert)}},u=o.metadata;if(typeof Blob<"u"&&s instanceof Blob?(i=new FormData,i.append("cacheControl",o.cacheControl),u&&i.append("metadata",this.encodeMetadata(u)),i.append("",s)):typeof FormData<"u"&&s instanceof FormData?(i=s,i.has("cacheControl")||i.append("cacheControl",o.cacheControl),u&&!i.has("metadata")&&i.append("metadata",this.encodeMetadata(u))):(i=s,c["cache-control"]=`max-age=${o.cacheControl}`,c["content-type"]=o.contentType,u&&(c["x-metadata"]=this.toBase64(this.encodeMetadata(u))),(typeof ReadableStream<"u"&&i instanceof ReadableStream||i&&typeof i=="object"&&"pipe"in i&&typeof i.pipe=="function")&&!o.duplex&&(o.duplex="half")),n?.headers)for(let[g,y]of Object.entries(n.headers))c=L(c,g,y);let d=this._removeEmptyFolders(t),l=this._getFinalPath(d),f=await(e=="PUT"?$e:$)(this.fetch,`${this.url}/object/${l}`,i,{headers:c,...o?.duplex?{duplex:o.duplex}:{}});return{path:d,id:f.Id,fullPath:f.Key}})}async upload(e,t,s){return this.uploadOrUpdate("POST",e,t,s)}async uploadToSignedUrl(e,t,s,n){let i=this._removeEmptyFolders(e),o=this._getFinalPath(i),c=new URL(this.url+`/object/upload/sign/${o}`);return c.searchParams.set("token",t),this.handleOperation(async()=>{let u,d={...gt,...n},l={...this.headers,"x-upsert":String(d.upsert)},f=d.metadata;if(typeof Blob<"u"&&s instanceof Blob?(u=new FormData,u.append("cacheControl",d.cacheControl),f&&u.append("metadata",this.encodeMetadata(f)),u.append("",s)):typeof FormData<"u"&&s instanceof FormData?(u=s,u.has("cacheControl")||u.append("cacheControl",d.cacheControl),f&&!u.has("metadata")&&u.append("metadata",this.encodeMetadata(f))):(u=s,l["cache-control"]=`max-age=${d.cacheControl}`,l["content-type"]=d.contentType,f&&(l["x-metadata"]=this.toBase64(this.encodeMetadata(f))),(typeof ReadableStream<"u"&&u instanceof ReadableStream||u&&typeof u=="object"&&"pipe"in u&&typeof u.pipe=="function")&&!d.duplex&&(d.duplex="half")),n?.headers)for(let[y,ne]of Object.entries(n.headers))l=L(l,y,ne);let g=await $e(this.fetch,c.toString(),u,{headers:l,...d?.duplex?{duplex:d.duplex}:{}});return{path:i,fullPath:g.Key}})}async createSignedUploadUrl(e,t){return this.handleOperation(async()=>{let s=this._getFinalPath(e),n={...this.headers};t?.upsert&&(n["x-upsert"]="true");let i=await $(this.fetch,`${this.url}/object/upload/sign/${s}`,{},{headers:n}),o=new URL(this.url+i.url),c=o.searchParams.get("token");if(!c)throw new F("No token returned by API");return{signedUrl:o.toString(),path:e,token:c}})}async update(e,t,s){return this.uploadOrUpdate("PUT",e,t,s)}async move(e,t,s){return this.handleOperation(async()=>await $(this.fetch,`${this.url}/object/move`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers}))}async copy(e,t,s){return this.handleOperation(async()=>({path:(await $(this.fetch,`${this.url}/object/copy`,{bucketId:this.bucketId,sourceKey:e,destinationKey:t,destinationBucket:s?.destinationBucket},{headers:this.headers})).Key}))}async createSignedUrl(e,t,s){return this.handleOperation(async()=>{let n=this._getFinalPath(e),i=typeof s?.transform=="object"&&s.transform!==null&&Object.keys(s.transform).length>0,o=await $(this.fetch,`${this.url}/object/sign/${n}`,{expiresIn:t,...i?{transform:s.transform}:{}},{headers:this.headers}),c=new URLSearchParams;s?.download&&c.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&c.set("cacheNonce",String(s.cacheNonce));let u=c.toString();return{signedUrl:encodeURI(`${this.url}${o.signedURL}${u?`&${u}`:""}`)}})}async createSignedUrls(e,t,s){return this.handleOperation(async()=>{let n=await $(this.fetch,`${this.url}/object/sign/${this.bucketId}`,{expiresIn:t,paths:e},{headers:this.headers}),i=new URLSearchParams;s?.download&&i.set("download",s.download===!0?"":s.download),s?.cacheNonce!=null&&i.set("cacheNonce",String(s.cacheNonce));let o=i.toString();return n.map(c=>({...c,signedUrl:c.signedURL?encodeURI(`${this.url}${c.signedURL}${o?`&${o}`:""}`):null}))})}download(e,t,s){let i=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image/authenticated":"object",o=new URLSearchParams;t?.transform&&this.applyTransformOptsToQuery(o,t.transform),t?.cacheNonce!=null&&o.set("cacheNonce",String(t.cacheNonce));let c=o.toString(),u=this._getFinalPath(e),d=a(()=>Re(this.fetch,`${this.url}/${i}/${u}${c?`?${c}`:""}`,{headers:this.headers,noResolveJson:!0},s),"downloadFn");return new Z(d,this.shouldThrowOnError)}async info(e){let t=this._getFinalPath(e);return this.handleOperation(async()=>{let s=await Re(this.fetch,`${this.url}/object/info/${t}`,{headers:this.headers});return me(s)})}async exists(e){let t=this._getFinalPath(e);try{return await mt(this.fetch,`${this.url}/object/${t}`,{headers:this.headers}),{data:!0,error:null}}catch(s){if(this.shouldThrowOnError)throw s;if(U(s)){let n=s instanceof C?s.status:s instanceof q?s.originalError?.status:void 0;if(n!==void 0&&[400,404].includes(n))return{data:!1,error:s}}throw s}}getPublicUrl(e,t){let s=this._getFinalPath(e),n=new URLSearchParams;t?.download&&n.set("download",t.download===!0?"":t.download),t?.transform&&this.applyTransformOptsToQuery(n,t.transform),t?.cacheNonce!=null&&n.set("cacheNonce",String(t.cacheNonce));let i=n.toString(),c=typeof t?.transform=="object"&&t.transform!==null&&Object.keys(t.transform).length>0?"render/image":"object";return{data:{publicUrl:encodeURI(`${this.url}/${c}/public/${s}`)+(i?`?${i}`:"")}}}async remove(e){return this.handleOperation(async()=>await Ue(this.fetch,`${this.url}/object/${this.bucketId}`,{prefixes:e},{headers:this.headers}))}async purgeCache(e,t,s){return this.handleOperation(async()=>{let n=ht(this._getFinalPath(e)),i=new URLSearchParams;t?.transformations&&i.set("transformations","true");let o=i.toString();return await Ue(this.fetch,`${this.url}/cdn/${n}${o?`?${o}`:""}`,{},{headers:this.headers},s)})}async list(e,t,s){return this.handleOperation(async()=>{let n=t?.sortBy?{...Ie.sortBy,...t.sortBy}:Ie.sortBy,i={...Ie,...t,sortBy:n,prefix:e||""};return await $(this.fetch,`${this.url}/object/list/${this.bucketId}`,i,{headers:this.headers},s)})}async listV2(e,t){return this.handleOperation(async()=>{let s={...e};return await $(this.fetch,`${this.url}/object/list-v2/${this.bucketId}`,s,{headers:this.headers},t)})}encodeMetadata(e){return JSON.stringify(e)}toBase64(e){return typeof Buffer<"u"?Buffer.from(e).toString("base64"):btoa(e)}_getFinalPath(e){return`${this.bucketId}/${e.replace(/^\/+/,"")}`}_removeEmptyFolders(e){return e.replace(/^\/|\/$/g,"").replace(/\/+/g,"/")}applyTransformOptsToQuery(e,t){return t.width&&e.set("width",t.width.toString()),t.height&&e.set("height",t.height.toString()),t.resize&&e.set("resize",t.resize),t.format&&e.set("format",t.format),t.quality&&e.set("quality",t.quality.toString()),e}};var yt="2.112.3";var bt={"X-Client-Info":`storage-js/${yt}`};var W="runtime",ge=600,ye=3600,w=class extends Error{static{a(this,"CloudStoragePathError")}constructor(e){super(e),this.name="CloudStoragePathError"}},te=class{static{a(this,"WorkBuddyStorageDownload")}blob;stream;[Symbol.toStringTag]="WorkBuddyStorageDownload";constructor(e,t){this.blob=e,this.stream=t}asStream(){return this.stream()}then(e,t){return this.blob().then(e,t)}catch(e){return this.blob().catch(e)}finally(e){return this.blob().finally(e)}},H=class{static{a(this,"WorkBuddyStorageBucket")}fileApi;constructor(e){this.fileApi=e}upload(e,t,s){return _(this.fileApi.upload(v(e),t,s))}update(e,t,s){return _(this.fileApi.update(v(e),t,s))}list(e="",t){return _(this.fileApi.list(St(e),t))}listPage(e){return _(this.fileApi.listV2({...e,prefix:St(e?.prefix??"")}))}info(e){return _(this.fileApi.info(v(e)))}async exists(e){let t=await this.fileApi.exists(v(e));return t.error?{data:null,error:Et(t.error)}:{data:t.data,error:null}}download(e){let t=this.fileApi.download(v(e));return new te(()=>_(t),()=>_(t.asStream()))}remove(e){if(e.length===0)throw new w("remove requires at least one object path.");return _(this.fileApi.remove(e.map(v)))}copy(e,t){return _(this.fileApi.copy(v(e),v(t)))}move(e,t){return _(this.fileApi.move(v(e),v(t)))}createSignedUrl(e,t=ge){return _(this.fileApi.createSignedUrl(v(e),kt(t)))}createSignedUrls(e,t=ge){if(e.length===0)throw new w("createSignedUrls requires at least one object path.");return _(this.fileApi.createSignedUrls(e.map(v),kt(t)))}createSignedUploadUrl(e,t){return _(this.fileApi.createSignedUploadUrl(v(e),{upsert:t?.upsert??!1}))}uploadToSignedUrl(e,t,s,n){if(!t)throw new w("signed upload token is required.");return _(this.fileApi.uploadToSignedUrl(v(e),t,s,n))}},re=class extends H{static{a(this,"WorkBuddyStorageModule")}runtime;constructor(e){let s=e.from(W);super(s),this.runtime=new H(s)}from(e=W){if(e!==W)throw new w(`Only the "${W}" storage bucket is available.`);return this.runtime}userPath(e,t){return wt("users",e,t)}sharedPath(e,t){return wt("shared",e,t)}};function xt(r,e){let t={from:a(s=>new ee(`${r.endpoint}${R.storage}`,bt,s,e),"from")};return new re(t)}a(xt,"createStorageModule");function wt(r,e,t){let s=sr(e,"owner/user id"),n=Ce(t,!1);return v(`${r}/${s}/${n}`)}a(wt,"scopedPath");function v(r){let e=Ce(r,!1);if(!e.includes("/"))throw new w("Object paths must use users/<uid>/... or shared/<ownerUid>/....");let[t,s,...n]=e.split("/");if(t!=="users"&&t!=="shared"||!s||n.length===0)throw new w("Object paths must use users/<uid>/... or shared/<ownerUid>/....");return e}a(v,"validateObjectPath");function St(r){if(r==="")return"";let e=Ce(r,!0),[t,s]=e.split("/");if(t==="shared"&&!s)return"shared";if(t!=="users"&&t!=="shared"||!s)throw new w("List prefixes must start with users/<uid> or shared/<ownerUid>.");return e}a(St,"validateObjectPrefix");function Ce(r,e){if(typeof r!="string"||r.trim()==="")throw new w("Storage path must be a non-empty relative path.");let t=r.trim();for(let i=0;i<3;i+=1)try{let o=decodeURIComponent(t);if(o===t)break;t=o}catch{throw new w("Storage path contains invalid URL encoding.")}if(t.startsWith("/")||t.includes("\\")||t.includes("\0")||t.includes("//")||!e&&t.endsWith("/"))throw new w("Storage path is not a safe relative object path.");let s=e?t.replace(/\/+$/,""):t;if(s.split("/").some(i=>i===""||i==="."||i===".."))throw new w("Storage path traversal is not allowed.");return s}a(Ce,"validatePath");function sr(r,e){if(!r)throw new w(`${e} is not a valid storage path segment.`);let t=r;for(let s=0;s<3;s+=1)try{let n=decodeURIComponent(t);if(n===t)break;t=n}catch{throw new w(`${e} contains invalid URL encoding.`)}if(t.includes("/")||t.includes("\\")||t.includes("\0")||t==="."||t==="..")throw new w(`${e} is not a valid storage path segment.`);return t}a(sr,"validatePathSegment");function kt(r){if(!Number.isInteger(r)||r<=0||r>ye)throw new w(`Signed URL expiry must be an integer between 1 and ${ye} seconds.`);return r}a(kt,"validateSignedURLTTL");async function _(r){let e=await r;return e.error?{data:null,error:Et(e.error)}:e.data===null?{data:null,error:{name:"CloudStorageResponseError",message:"Storage API returned neither data nor an error."}}:{data:e.data,error:null}}a(_,"mapStorageResult");function Et(r){if(r instanceof Error){let e=r;return{name:e.name,message:e.message,status:e.status,statusCode:e.statusCode,code:e.code,cause:r}}return{name:"CloudStorageError",message:String(r),cause:r}}a(Et,"normalizeStorageError");var se=class{static{a(this,"WorkBuddyCloudClient")}config;database;auth;storage;llm;constructor(e,t={}){this.config=e,this.auth=new D(e,we(e,oe),{storage:t.storage,workBuddyMiniProgram:t.workBuddyMiniProgram});let s=we(e,()=>this.auth.getAccessToken());this.database=et(e,s),this.storage=xt(e,s),this.llm=new M(e,s)}get endpoint(){return this.config.endpoint}get oauthRelayBaseUrl(){return this.config.oauthRelayBaseUrl}};function vt(r){return new se(je(r),{storage:r.storage})}a(vt,"createWorkBuddyCloud");function Pt(r){return r.kind==="unauthenticated"||r.code==="invalid_grant"}a(Pt,"shouldClearCredentials");return $t(nr);})();
+
+/* ============================================================
+   Habit Quest — 像素风 21 天习惯养成
+   像素绘制引擎：所有角色 / 场景 / 装饰都在 96x64 逻辑网格上绘制，
+   再用 CSS image-rendering: pixelated 放大，保证真像素观感。
+   ============================================================ */
+
+const SCENE_W = 96;
+const SCENE_H = 64;
+
+const C = {
+  ink: '#2b2138', ink2: '#463457',
+  skin: '#f8d6b2', skinS: '#e6b58c', skinD: '#c98f6a',
+  gold: '#f7c948', goldD: '#d9a227', goldL: '#ffe89a',
+  white: '#fdf7ea', cream: '#f3e7d1',
+  mint: '#4fb286', mintD: '#337d5c', mintL: '#7fdaad',
+  red: '#e0574d', redD: '#ab3a33',
+  pink: '#f59ab8', pinkD: '#cf7592', pinkL: '#ffc7d8',
+  blue: '#5b8fd6', blueD: '#3a64a0',
+  purple: '#9b7bdc', purpleD: '#6d4fb0',
+  orange: '#f0a860', orangeD: '#cd7f3a', orangeL: '#ffcb8f',
+  brown: '#8a6247', brownD: '#5f4029',
+  night: '#1b1733', nightL: '#2c2650'
+};
+
+/* ---------- painter：逻辑像素画笔 ---------- */
+function mkPainter(ctx) {
+  const P = (x, y, w, h, col) => {
+    if (w <= 0 || h <= 0 || !col) return;
+    ctx.fillStyle = col;
+    ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  };
+  P.rect = P;
+  P.circle = (cx, cy, r, col) => {
+    for (let y = -r; y <= r; y++) {
+      for (let x = -r; x <= r; x++) {
+        if (x * x + y * y <= r * r + r * 0.6) P(cx + x, cy + y, 1, 1, col);
+      }
+    }
+  };
+  P.ellipse = (cx, cy, rx, ry, col) => {
+    for (let y = -ry; y <= ry; y++) {
+      for (let x = -rx; x <= rx; x++) {
+        const d = (x * x) / (rx * rx) + (y * y) / (ry * ry);
+        if (d <= 1.05) P(cx + x, cy + y, 1, 1, col);
+      }
+    }
+  };
+  // 竖直色带（像素渐变）
+  P.bands = (x, y, w, h, cols, dither) => {
+    const n = cols.length;
+    for (let i = 0; i < n; i++) {
+      const yy = y + Math.floor((i * h) / n);
+      const hh = Math.ceil(h / n);
+      P(x, yy, w, hh, cols[i]);
+      if (dither && i > 0) {
+        for (let dx = 0; dx < w; dx++) {
+          for (let dy = 0; dy < 2; dy++) {
+            if ((dx + dy) % 2 === 0) P(x + dx, yy + dy, 1, 1, cols[i - 1]);
+          }
+        }
+      }
+    }
+  };
+  // 阶梯三角（用于沙丘/山）
+  P.tri = (cx, baseY, halfW, hgt, col) => {
+    for (let i = 0; i < hgt; i++) {
+      const t = i / hgt;
+      const w = Math.round(halfW * (1 - t)) * 2 + 1;
+      P(cx - Math.floor(w / 2), baseY - i, w, 1, col);
+    }
+  };
+  P.stairs = (x, y, w, h, col, dir) => {
+    // 右上斜的阶梯块
+    for (let i = 0; i < h; i++) {
+      const ww = Math.round(w * (1 - i / h));
+      P(dir === 'l' ? x : x + (w - ww), y + i, ww, 1, col);
+    }
+  };
+  return P;
+}
+
+/* ============================================================
+   场景绘制
+   ============================================================ */
+const SCENES = ['desert', 'star', 'sunrise', 'lake'];
+const SCENE_NAME = { desert: '沙漠', star: '星空', sunrise: '日出', lake: '湖泊' };
+
+function seededRand(seed) {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return () => (s = (s * 16807) % 2147483647) / 2147483647;
+}
+
+function drawScene(p, name, seed) {
+  const R = seededRand(seed || 7);
+  const W = SCENE_W, H = SCENE_H;
+
+  if (name === 'desert') {
+    p.bands(0, 0, W, 42, ['#f9dda4', '#f5c67f', '#eda261', '#e08a58'], true);
+    p.circle(74, 15, 8, '#ffe9a8');
+    p.circle(74, 15, 6, '#fff6cf');
+    // 远沙丘
+    p.tri(20, 42, 26, 8, '#e5a163');
+    p.tri(62, 42, 30, 10, '#dd9557');
+    p.tri(92, 42, 18, 7, '#e8aa6b');
+    // 地面
+    p(0, 42, W, 6, '#e3a868');
+    p(0, 46, W, 18, '#ebbb7f');
+    p(0, 49, W, 15, '#dfa568');
+    // 沙纹
+    for (let i = 0; i < 26; i++) {
+      const x = Math.floor(R() * W), y = 46 + Math.floor(R() * 16);
+      p(x, y, 3 + Math.floor(R() * 4), 1, '#d59a5f');
+    }
+    // 仙人掌
+    p(13, 36, 4, 12, '#4f8f5e');
+    p(10, 40, 3, 2, '#4f8f5e'); p(10, 38, 2, 3, '#4f8f5e');
+    p(17, 43, 3, 2, '#4f8f5e'); p(19, 40, 2, 4, '#4f8f5e');
+    p(14, 36, 1, 12, '#63a873');
+    // 石头
+    p(80, 51, 6, 3, '#b9834e'); p(82, 49, 4, 2, '#c99361');
+    p(30, 54, 4, 2, '#c98f57');
+    // 干草
+    p(46, 50, 1, 3, '#a97a45'); p(48, 49, 1, 4, '#a97a45');
+  }
+
+  if (name === 'star') {
+    p.bands(0, 0, W, 46, ['#151333', '#1d1b45', '#262a5e', '#33306e'], true);
+    // 星星
+    for (let i = 0; i < 60; i++) {
+      const x = Math.floor(R() * W), y = Math.floor(R() * 48);
+      const s = R();
+      if (s > 0.86) { p(x, y, 2, 2, '#fff6cf'); p(x - 1, y + 1, 4, 1, '#fff6cf'); p(x + 1, y - 1, 1, 4, '#fff6cf'); }
+      else if (s > 0.5) p(x, y, 1, 1, '#e8e2ff');
+      else p(x, y, 1, 1, '#9f97d6');
+    }
+    // 月亮
+    p.circle(72, 13, 8, '#fff4c9');
+    p.circle(76, 11, 7, '#1d1b45');
+    // 流星
+    p(20, 12, 1, 1, '#fff'); p(18, 14, 2, 1, '#cfc6ff'); p(16, 16, 3, 1, '#7d73b8');
+    // 山
+    p.tri(24, 52, 22, 18, '#211d43');
+    p.tri(66, 52, 26, 22, '#272350');
+    p.tri(48, 52, 14, 12, '#2e2a5c');
+    p(0, 52, W, 12, '#1a1738');
+    p(0, 55, W, 9, '#131029');
+    // 湖面反光
+    p(30, 57, 8, 1, '#3a3468'); p(52, 59, 12, 1, '#3a3468');
+  }
+
+  if (name === 'sunrise') {
+    p.bands(0, 0, W, 44, ['#3b2a5e', '#6b4272', '#a8577a', '#d97476', '#f0a271', '#f8c98a'], true);
+    // 太阳
+    p.circle(48, 40, 11, '#ffe9a8');
+    p.circle(48, 40, 8, '#fff8d4');
+    // 云
+    for (const [cx, cy, w] of [[16, 18, 16], [70, 12, 20], [40, 26, 12]]) {
+      p(cx, cy, w, 3, '#c98aa8'); p(cx + 3, cy - 2, w - 8, 2, '#e0a3b4');
+      p(cx, cy + 3, w, 1, '#a8708f');
+    }
+    // 山
+    p.tri(18, 52, 24, 16, '#5a3a63');
+    p.tri(58, 52, 30, 20, '#4a2f55');
+    p.tri(88, 52, 16, 11, '#5a3a63');
+    p(0, 50, W, 14, '#3a2646');
+    p(0, 54, W, 10, '#2c1c36');
+    // 草地
+    for (let i = 0; i < 20; i++) {
+      const x = Math.floor(R() * W);
+      p(x, 57 + Math.floor(R() * 5), 1, 2, '#4a3a5e');
+    }
+  }
+
+  if (name === 'lake') {
+    const HZ = 30;          // 地平线（远岸）
+    const SHORE = 51;       // 近岸线基准
+
+    /* --- 天空：上冷下暖，靠近地平线泛奶油色，与青色湖面形成冷暖分界 --- */
+    p.bands(0, 0, W, HZ + 1, ['#78b4cc', '#a2d1d7', '#cfe6dc', '#f3efd8'], true);
+    // 太阳（偏右，给湖面倒影留位置）
+    p.circle(68, 10, 7, '#fff0bd');
+    p.circle(68, 10, 5, '#fffdf2');
+    // 薄云
+    for (const [cx, cy, w] of [[14, 8, 16], [38, 15, 12], [82, 6, 9]]) {
+      p(cx, cy, w, 2, '#f6f4e4'); p(cx + 2, cy - 1, w - 6, 1, '#fdfcf3');
+      p(cx, cy + 2, w, 1, '#d5e3da');
+    }
+
+    /* --- 远山：后面一层更淡，靠前一层更实 --- */
+    p.tri(16, HZ, 20, 15, '#a8c6cf');
+    p.tri(76, HZ, 18, 12, '#b0ccd2');
+    p.tri(44, HZ, 25, 20, '#84a8b7');
+    p.tri(60, HZ, 12, 9, '#93b4c0');
+    // 雪顶
+    p.tri(44, HZ - 16, 4, 4, '#f2f7f4');
+    p.tri(16, HZ - 11, 3, 3, '#eef5f2');
+
+    /* --- 对岸松树剪影：这一层是「湖」而非「海」的关键标识 --- */
+    p(0, HZ - 1, W, 2, '#3d6a56');
+    for (let i = 0; i < 18; i++) {
+      const x = Math.floor(R() * W), h = 3 + Math.floor(R() * 3);
+      p.tri(x, HZ - 1, 2, h, i % 3 === 0 ? '#335c4a' : '#3d6a56');
+    }
+    // 远岸浅色水线（岸与水的分界）
+    p(0, HZ + 1, W, 1, '#c8e0d8');
+
+    /* --- 湖面：由远及近逐层加深，形成纵向纵深 --- */
+    p(0, HZ + 2, W, 6, '#8fc6ca');
+    p(0, HZ + 8, W, 5, '#77b3be');
+    p(0, HZ + 13, W, 5, '#61a0b1');
+    p(0, HZ + 18, W, 5, '#518c9f');
+    p(0, HZ + 23, W, 4, '#457f93');
+
+    /* --- 倒影：山影用断续横条，做出水面破碎感 --- */
+    const refl = (cx, halfW, hgt, col) => {
+      for (let i = 0; i < hgt; i++) {
+        if (i % 2) continue;
+        const t = i / hgt, w = Math.round(halfW * (1 - t)) * 2 + 1;
+        p(cx - Math.floor(w / 2), HZ + 2 + i, w, 1, col);
+      }
+    };
+    refl(44, 16, 16, '#6d97a8');
+    refl(16, 12, 11, '#7ba4b0');
+    refl(76, 11, 9, '#7ba4b0');
+    // 太阳在水面的光柱（越近越宽、越散）
+    const sunCol = [[3, '#ffe9ad'], [5, '#ffeec0'], [4, '#ffe0a0'], [7, '#ffe9b4'], [5, '#f6d393'], [9, '#efcb8c'], [6, '#e2bd83']];
+    sunCol.forEach(([w, col], i) => {
+      p(68 - Math.floor(w / 2) + (i % 2 ? 1 : 0), HZ + 2 + i * 3, w, 1, col);
+    });
+
+    /* --- 波纹：靠近远岸的细密，靠近近岸的疏而长 --- */
+    for (let i = 0; i < 40; i++) {
+      const t = R();
+      const y = HZ + 3 + Math.floor(t * 19);
+      const x = Math.floor(R() * W);
+      const w = 2 + Math.floor(t * 5 + R() * 3);
+      p(x, y, w, 1, i % 4 === 0 ? '#c3e6e4' : '#5d9aa8');
+    }
+
+    /* --- 右侧木栈桥（延伸出画外），湖岸的第二重识别信号 --- */
+    p(80, 46, 16, 2, '#8a5f3c');
+    p(80, 46, 16, 1, '#a2744c');
+    p(83, 48, 2, 4, '#6b4830'); p(89, 48, 2, 4, '#6b4830'); p(95, 48, 1, 4, '#6b4830');
+    p(80, 52, 16, 1, '#4d7f8d'); // 桥影
+
+    /* --- 水面上的浮萍与睡莲 --- */
+    p.ellipse(18, 45, 4, 1, '#4f8b62'); p(19, 45, 2, 1, '#5fa071');
+    p.ellipse(27, 41, 3, 1, '#4f8b62');
+    p(21, 43, 2, 1, '#5fa071');
+    p.circle(24, 47, 1, '#f2a8c4'); // 睡莲花
+
+    /* --- 岸边芦苇（左侧，避免挡住人物） --- */
+    p(5, 42, 1, 10, '#3f6b59'); p(4, 44, 2, 1, '#4e7f6b'); p(6, 46, 2, 1, '#4e7f6b');
+    p(11, 45, 1, 7, '#4e7f6b'); p(12, 47, 2, 1, '#5d8f6b');
+    p(8, 40, 1, 3, '#8a7a4e'); // 芦花
+
+    /* --- 近岸：沙岸 + 草坡，给人物一个真正的落脚点 --- */
+    for (let x = 0; x < W; x++) {
+      const wob = Math.round(Math.sin(x / 6.3) * 1.4 + Math.sin(x / 2.7) * 0.5);
+      const s = SHORE + wob;
+      p(x, s, 1, 64 - s, '#c9bd9c');           // 干沙
+      p(x, s + 2, 1, 64 - s - 2, '#7ba76b');   // 草
+      p(x, s + 5, 1, 64 - s - 5, '#6a9a5e');
+      p(x, 60, 1, 4, '#5c8b53');               // 前缘压深
+    }
+    // 沙与草之间的湿痕
+    p(0, SHORE + 1, W, 1, '#d8cdaa');
+    // 草簇 / 碎石 / 小野花
+    for (let i = 0; i < 22; i++) {
+      const x = 2 + Math.floor(R() * (W - 4));
+      const y = SHORE + 4 + Math.floor(R() * 10);
+      if (i % 5 === 0) { p(x, y, 1, 1, '#f7f3e2'); p(x + 1, y + 1, 1, 1, '#f2df8a'); }
+      else if (i % 3 === 0) p(x, y, 2, 1, '#8fbb7a');
+      else { p(x, y, 1, 2, '#5b8a52'); p(x + 2, y + 1, 1, 2, '#5b8a52'); }
+    }
+    // 岸边碎石
+    p(30, 56, 3, 1, '#b3ab90'); p(62, 58, 4, 1, '#a9a289'); p(14, 59, 2, 1, '#b3ab90');
+  }
+}
+
+/* ============================================================
+   角色绘制 —— 返回锚点信息供装饰定位
+   ============================================================ */
+
+function drawShadow(p, cx, y) {
+  p.ellipse(cx, y, 9, 2, 'rgba(20,10,30,0.18)');
+}
+
+/* ---------- 小王子 ---------- */
+function drawPrince(p, stage, ox, oy) {
+  const tall = stage >= 3;
+  const cx = ox + 16;
+  const hy = oy + (tall ? 1 : 4);
+  const headW = 16, headH = 14;
+  const hx = cx - 8;
+  const bodyTop = hy + headH - 2;
+  const bodyW = tall ? 14 : 13;
+  const bx = cx - Math.floor(bodyW / 2);
+  const bodyH = tall ? 11 : 8;
+  const legTop = bodyTop + bodyH;
+  const feetY = oy + 31;
+
+  // 披风（stage>=2）
+  if (stage >= 2) {
+    const capeCol = stage >= 4 ? '#7c3fa8' : C.red;
+    const capeColD = stage >= 4 ? '#5b2b7d' : C.redD;
+    const cw = stage >= 4 ? 5 : 4;
+    p(bx - cw, bodyTop, cw, bodyH + (tall ? 8 : 5), capeColD);
+    p(bx + bodyW, bodyTop, cw, bodyH + (tall ? 8 : 5), capeColD);
+    p(bx - cw + 1, bodyTop, 1, bodyH + (tall ? 8 : 5), capeCol);
+    p(bx + bodyW, bodyTop, 1, bodyH + (tall ? 8 : 5), capeCol);
+  }
+
+  // 腿
+  p(cx - 4, legTop, 3, feetY - legTop - 2, '#2f3550');
+  p(cx + 1, legTop, 3, feetY - legTop - 2, '#2f3550');
+  // 靴子
+  p(cx - 5, feetY - 3, 4, 3, C.brownD);
+  p(cx + 1, feetY - 3, 4, 3, C.brownD);
+  p(cx - 5, feetY - 3, 4, 1, C.brown);
+
+  // 身体
+  p(bx, bodyTop, bodyW, bodyH, C.mint);
+  p(bx, bodyTop, bodyW, 2, C.mintL);
+  p(bx + bodyW - 2, bodyTop, 2, bodyH, C.mintD);
+  // 手臂
+  p(bx - 2, bodyTop + 2, 2, bodyH - 2, C.mintD);
+  p(bx + bodyW, bodyTop + 2, 2, bodyH - 2, C.mintD);
+  p(bx - 2, bodyTop + bodyH - 1, 2, 2, C.skin);
+  p(bx + bodyW, bodyTop + bodyH - 1, 2, 2, C.skin);
+  // 门襟 + 扣子
+  p(cx - 1, bodyTop + 2, 2, bodyH - 2, C.mintD);
+  p(cx - 1, bodyTop + 3, 1, 1, C.gold);
+  p(cx - 1, bodyTop + 6, 1, 1, C.gold);
+  // 红领巾
+  p(cx - 4, bodyTop - 1, 8, 2, C.red);
+  p(cx - 2, bodyTop + 1, 4, 1, C.redD);
+  // 肩章（stage>=3）
+  if (stage >= 3) {
+    p(bx - 1, bodyTop, 3, 2, C.gold);
+    p(bx + bodyW - 2, bodyTop, 3, 2, C.gold);
+  }
+
+  // 头
+  p(hx - 1, hy + 2, headW + 2, 11, C.gold);       // 后发
+  p(hx + 1, hy, headW - 2, 4, C.gold);            // 顶发
+  p(hx + 2, hy + 3, headW - 4, 10, C.skin);       // 脸
+  p(hx + 1, hy + 3, headW - 2, 2, C.gold);        // 刘海
+  p(hx + 4, hy + 5, 3, 1, C.gold);
+  p(hx + 9, hy + 5, 3, 1, C.gold);
+  p(hx, hy + 4, 2, 9, C.goldD);                   // 鬓角
+  p(hx + headW - 2, hy + 4, 2, 9, C.goldD);
+  // 五官
+  p(cx - 4, hy + 7, 2, 2, C.ink);
+  p(cx + 2, hy + 7, 2, 2, C.ink);
+  p(cx - 4, hy + 7, 1, 1, C.white);
+  p(cx + 2, hy + 7, 1, 1, C.white);
+  p(cx - 6, hy + 9, 2, 1, '#f0a9a0');
+  p(cx + 4, hy + 9, 2, 1, '#f0a9a0');
+  p(cx - 1, hy + 10, 2, 1, C.redD);
+
+  // 王冠
+  if (stage >= 3) {
+    p(cx - 6, hy - 2, 12, 2, C.gold);
+    p(cx - 6, hy - 4, 2, 2, C.gold);
+    p(cx - 1, hy - 5, 2, 3, C.gold);
+    p(cx + 4, hy - 4, 2, 2, C.gold);
+    p(cx - 1, hy - 2, 1, 1, C.red);
+  }
+  if (stage >= 5) {
+    p(cx - 6, hy - 2, 12, 1, C.goldL);
+    p(cx - 3, hy - 4, 1, 2, C.goldL);
+    p(cx + 3, hy - 4, 1, 2, C.goldL);
+  }
+  // 光环（stage>=5）
+  if (stage >= 5) {
+    p(cx - 7, hy - 8, 14, 1, '#ffe89a');
+    p(cx - 8, hy - 7, 1, 1, '#ffe89a');
+    p(cx + 7, hy - 7, 1, 1, '#ffe89a');
+  }
+
+  return { cx, headTop: hy, headW, headH, bodyTop, bodyW: bodyW, bx, feetY, neckY: bodyTop - 2, stage };
+}
+
+/* ---------- 小公主 ---------- */
+function drawPrincess(p, stage, ox, oy) {
+  const tall = stage >= 3;
+  const cx = ox + 16;
+  const hy = oy + (tall ? 1 : 4);
+  const headW = 15, headH = 14;
+  const hx = cx - 7;
+  const bodyTop = hy + headH - 2;
+  const feetY = oy + 31;
+  const dressTop = bodyTop + (tall ? 6 : 5);
+  const skirtW = tall ? 22 : 18;
+
+  // 长发（背后）
+  p(hx - 2, hy + 2, headW + 4, tall ? 24 : 20, '#a5703f');
+  p(hx - 3, hy + 6, 2, tall ? 20 : 16, '#8d5c33');
+  p(hx + headW + 1, hy + 6, 2, tall ? 20 : 16, '#8d5c33');
+
+  // 披风/薄纱（stage>=4）
+  if (stage >= 4) {
+    const col = stage >= 5 ? '#cfa8f0' : '#f7c6dd';
+    p(cx - skirtW / 2 - 3, dressTop, 3, feetY - dressTop - 3, col);
+    p(cx + skirtW / 2, dressTop, 3, feetY - dressTop - 3, col);
+  }
+
+  // 裙摆（阶梯三角）
+  for (let i = 0; i < feetY - dressTop; i++) {
+    const t = i / (feetY - dressTop);
+    const w = Math.round(skirtW - (skirtW - 12) * (1 - t) * 0.55) + (i > 2 ? 2 : 0);
+    const ww = Math.min(skirtW, 12 + Math.round(i * 0.9));
+    p(cx - Math.floor(ww / 2), dressTop + i, ww, 1, i % 6 === 5 ? C.pinkD : C.pink);
+  }
+  p(cx - Math.floor(skirtW / 2) + 1, feetY - 2, skirtW - 2, 2, C.pinkD);
+
+  // 腿 + 鞋
+  p(cx - 3, feetY - 4, 2, 3, C.skin);
+  p(cx + 1, feetY - 4, 2, 3, C.skin);
+  p(cx - 3, feetY - 1, 3, 2, '#c96a8a');
+  p(cx + 1, feetY - 1, 3, 2, '#c96a8a');
+
+  // 上身
+  p(cx - 6, bodyTop, 12, tall ? 7 : 6, '#fdf0f4');
+  p(cx - 6, bodyTop, 12, 1, C.white);
+  p(cx - 2, bodyTop + 1, 4, 2, C.pinkL);
+  // 泡泡袖
+  p(cx - 9, bodyTop, 3, 4, C.pinkL);
+  p(cx + 6, bodyTop, 3, 4, C.pinkL);
+  p(cx - 9, bodyTop + 4, 3, 2, C.skin);
+  p(cx + 6, bodyTop + 4, 3, 2, C.skin);
+  // 腰带
+  p(cx - 6, dressTop - 2, 12, 2, stage >= 3 ? C.gold : C.pinkD);
+  p(cx - 1, dressTop - 2, 2, 2, stage >= 3 ? C.red : C.gold);
+
+  // 头
+  p(hx, hy, headW, 5, '#a5703f');
+  p(hx + 2, hy + 4, headW - 4, 9, C.skin);
+  p(hx + 3, hy + 4, headW - 6, 2, '#a5703f');
+  p(hx, hy + 4, 2, 8, '#a5703f');
+  p(hx + headW - 2, hy + 4, 2, 8, '#a5703f');
+  // 五官
+  p(cx - 4, hy + 7, 2, 2, C.ink);
+  p(cx + 2, hy + 7, 2, 2, C.ink);
+  p(cx - 4, hy + 7, 1, 1, C.white);
+  p(cx + 2, hy + 7, 1, 1, C.white);
+  p(cx - 6, hy + 9, 2, 1, '#f7a8b8');
+  p(cx + 4, hy + 9, 2, 1, '#f7a8b8');
+  p(cx - 1, hy + 10, 2, 1, C.redD);
+  // 蝴蝶结
+  p(cx - 7, hy - 1, 3, 2, C.red);
+  p(cx + 4, hy - 1, 3, 2, C.red);
+
+  // 王冠
+  if (stage >= 2) {
+    p(cx - 6, hy - 3, 12, 2, C.gold);
+    p(cx - 6, hy - 5, 2, 2, C.gold);
+    p(cx - 1, hy - 6, 2, 3, C.gold);
+    p(cx + 4, hy - 5, 2, 2, C.gold);
+    p(cx - 1, hy - 4, 1, 1, C.pink);
+  } else {
+    p(cx - 4, hy - 2, 8, 1, C.gold);
+  }
+  if (stage >= 4) {
+    p(cx - 8, hy - 4, 2, 1, C.goldL);
+    p(cx + 6, hy - 4, 2, 1, C.goldL);
+    p(cx - 1, hy - 7, 1, 1, C.goldL);
+  }
+  if (stage >= 5) {
+    p(cx - 7, hy - 9, 14, 1, '#ffe89a');
+    p(cx - 8, hy - 8, 1, 1, '#ffe89a');
+    p(cx + 7, hy - 8, 1, 1, '#ffe89a');
+  }
+
+  return { cx, headTop: hy, headW, headH, bodyTop, bodyW: 12, bx: cx - 6, feetY, neckY: bodyTop - 1, stage };
+}
+
+/* ---------- 小猫咪 ---------- */
+function drawCat(p, stage, ox, oy) {
+  const big = stage >= 3;
+  const cx = ox + 16;
+  const headW = big ? 20 : 16;
+  const headH = big ? 15 : 13;
+  const hy = oy + (big ? 2 : 8);
+  const hx = cx - Math.floor(headW / 2);
+  const feetY = oy + 31;
+  const bodyTop = hy + headH - 2;
+  const bodyW = big ? 18 : 14;
+  const bx = cx - Math.floor(bodyW / 2);
+  const bodyH = feetY - bodyTop - 4;
+
+  // 尾巴
+  const tailCol = C.orange, tailD = C.orangeD;
+  if (stage >= 2) {
+    p(bx + bodyW, bodyTop + 3, 3, 3, tailCol);
+    p(bx + bodyW + 2, bodyTop + 1, 2, 3, tailCol);
+    p(bx + bodyW + 3, bodyTop - 2, 2, 4, tailCol);
+    p(bx + bodyW + 3, bodyTop - 3, 2, 2, C.cream);
+    if (stage >= 4) { p(bx + bodyW + 1, bodyTop + 5, 2, 3, tailD); }
+  } else {
+    p(bx + bodyW, bodyTop + 6, 3, 2, tailCol);
+    p(bx + bodyW + 1, bodyTop + 4, 2, 3, tailCol);
+  }
+
+  // 身体
+  p(bx, bodyTop, bodyW, bodyH, C.orange);
+  p(bx, bodyTop, bodyW, 1, C.orangeL);
+  p(bx + bodyW - 1, bodyTop, 1, bodyH, C.orangeD);
+  // 胸口奶油色
+  p(cx - 3, bodyTop + 2, 6, bodyH - 3, C.cream);
+  // 前爪
+  p(cx - 6, feetY - 3, 5, 3, C.cream);
+  p(cx + 1, feetY - 3, 5, 3, C.cream);
+  p(cx - 6, feetY - 1, 5, 1, '#e7d5b4');
+
+  // 头
+  p(hx + 1, hy + 2, headW - 2, headH - 1, C.orange);
+  p(hx + 2, hy + 3, headW - 4, headH - 3, C.orange);
+  // 耳朵
+  p(hx, hy - 2, 5, 6, C.orange);
+  p(hx + headW - 5, hy - 2, 5, 6, C.orange);
+  p(hx + 1, hy - 1, 3, 4, C.pinkL);
+  p(hx + headW - 4, hy - 1, 3, 4, C.pinkL);
+  p(hx, hy - 3, 4, 2, C.orangeD);
+  p(hx + headW - 4, hy - 3, 4, 2, C.orangeD);
+  // 脸部浅色
+  p(cx - 6, hy + 7, 12, 6, C.cream);
+  // 眼睛
+  if (stage === 5) {
+    p(cx - 5, hy + 6, 2, 2, C.gold); p(cx + 3, hy + 6, 2, 2, C.gold);
+    p(cx - 5, hy + 6, 1, 1, C.white); p(cx + 3, hy + 6, 1, 1, C.white);
+  } else {
+    p(cx - 5, hy + 6, 2, 3, C.ink); p(cx + 3, hy + 6, 2, 3, C.ink);
+    p(cx - 5, hy + 6, 1, 1, C.white); p(cx + 3, hy + 6, 1, 1, C.white);
+  }
+  // 鼻子 + 嘴
+  p(cx - 1, hy + 9, 2, 1, C.pinkD);
+  p(cx - 1, hy + 10, 1, 1, C.orangeD);
+  p(cx + 1, hy + 10, 1, 1, C.orangeD);
+  // 胡须
+  p(cx - 9, hy + 9, 3, 1, '#c98f5c');
+  p(cx - 9, hy + 11, 3, 1, '#c98f5c');
+  p(cx + 6, hy + 9, 3, 1, '#c98f5c');
+  p(cx + 6, hy + 11, 3, 1, '#c98f5c');
+  // 腮红
+  p(cx - 7, hy + 9, 2, 1, '#f7b2a0');
+  p(cx + 5, hy + 9, 2, 1, '#f7b2a0');
+
+  // 项圈
+  const collarCol = stage >= 4 ? C.gold : C.red;
+  p(cx - 6, bodyTop - 1, 12, 2, collarCol);
+  p(cx - 1, bodyTop + 1, 2, 2, C.goldL);
+  if (stage >= 3) { p(cx - 8, bodyTop - 1, 2, 2, C.goldL); p(cx + 6, bodyTop - 1, 2, 2, C.goldL); }
+
+  // 王冠（stage>=4）/ 光环（stage 5）
+  if (stage >= 4) {
+    p(cx - 5, hy - 6, 10, 2, C.gold);
+    p(cx - 5, hy - 8, 2, 2, C.gold);
+    p(cx - 1, hy - 9, 2, 3, C.gold);
+    p(cx + 3, hy - 8, 2, 2, C.gold);
+    p(cx - 1, hy - 7, 1, 1, C.pink);
+  }
+  if (stage >= 5) {
+    p(cx - 7, hy - 12, 14, 1, '#ffe89a');
+    p(cx - 8, hy - 11, 1, 1, '#ffe89a');
+    p(cx + 7, hy - 11, 1, 1, '#ffe89a');
+    p(cx - 10, hy + 4, 1, 1, '#fff6cf'); p(cx + 10, hy + 2, 1, 1, '#fff6cf');
+  }
+
+  return { cx, headTop: hy, headW, headH, bodyTop, bodyW, bx, feetY, neckY: bodyTop - 1, stage, cat: true };
+}
+
+const CHARS = {
+  prince: { name: '小王子', sub: '温柔坚定的星际旅人', draw: drawPrince, accent: '#4fb286' },
+  princess: { name: '小公主', sub: '骄傲又心软的玫瑰公主', draw: drawPrincess, accent: '#f59ab8' },
+  cat: { name: '小猫咪', sub: '好奇又贪吃的小家伙', draw: drawCat, accent: '#f0a860' }
+};
+
+/* ============================================================
+   装饰物
+   ============================================================ */
+const DECOR = [
+  { id: 'sunglasses', name: '酷墨镜', slot: 'face', icon: '🕶', draw(p, m) {
+      const y = m.headTop + 7, x = m.cx - 7;
+      p(x, y, 14, 3, '#20202c');
+      p(x, y, 5, 3, '#33334a'); p(x + 9, y, 5, 3, '#33334a');
+      p(x + 5, y + 1, 4, 1, '#20202c');
+      p(x + 1, y + 1, 1, 1, '#8fd0ff'); p(x + 10, y + 1, 1, 1, '#8fd0ff');
+    } },
+  { id: 'flower', name: '小花发饰', slot: 'head', icon: '🌸', draw(p, m) {
+      const x = m.cx + 5, y = m.headTop + 1;
+      p(x, y, 2, 2, '#f7a8c4'); p(x - 2, y + 1, 2, 2, '#f7a8c4');
+      p(x + 2, y + 1, 2, 2, '#f7a8c4'); p(x, y + 3, 2, 2, '#f7a8c4');
+      p(x + 1, y + 2, 1, 1, '#fff3b0');
+    } },
+  { id: 'cane', name: '金色手杖', slot: 'hand', icon: '🪄', draw(p, m) {
+      const x = m.bx + m.bodyW + 3, y = m.bodyTop + 1;
+      p(x, y + 3, 2, m.feetY - y - 3, '#c9a24a');
+      p(x, y + 2, 4, 2, '#f7c948');
+      p(x + 1, y + 1, 2, 1, '#ffe89a');
+    } },
+  { id: 'crown', name: '迷你王冠', slot: 'head', icon: '👑', draw(p, m) {
+      const y = m.headTop - 4;
+      p(m.cx - 6, y, 12, 2, C.gold);
+      p(m.cx - 6, y - 2, 2, 2, C.gold); p(m.cx - 1, y - 3, 2, 3, C.gold); p(m.cx + 4, y - 2, 2, 2, C.gold);
+      p(m.cx - 1, y + 1, 1, 1, '#e0574d');
+    } },
+  { id: 'bow', name: '蝴蝶结', slot: 'head', icon: '🎀', draw(p, m) {
+      const x = m.cx - 8, y = m.headTop + 1;
+      p(x - 2, y, 3, 3, '#e0574d'); p(x + 2, y, 3, 3, '#e0574d');
+      p(x, y + 1, 2, 2, '#ab3a33');
+      p(x - 2, y + 3, 2, 3, '#ab3a33'); p(x + 2, y + 3, 2, 3, '#ab3a33');
+    } },
+  { id: 'scarf', name: '针织围巾', slot: 'neck', icon: '🧣', draw(p, m) {
+      const y = m.bodyTop - 2;
+      p(m.cx - 7, y, 14, 3, '#7c9fd9');
+      p(m.cx - 7, y + 2, 14, 1, '#5b7fb8');
+      p(m.cx + 3, y + 3, 3, 6, '#7c9fd9');
+      p(m.cx + 3, y + 6, 3, 1, '#5b7fb8');
+      p(m.cx + 3, y + 9, 3, 1, '#5b7fb8');
+    } },
+  { id: 'wings', name: '天使小翅膀', slot: 'back', icon: '🪽', draw(p, m) {
+      const y = m.bodyTop + 1;
+      p(m.bx - 8, y, 4, 5, '#fff8ec'); p(m.bx - 11, y + 2, 4, 5, '#f0e4d0');
+      p(m.bx + m.bodyW + 4, y, 4, 5, '#fff8ec'); p(m.bx + m.bodyW + 7, y + 2, 4, 5, '#f0e4d0');
+    } },
+  { id: 'halo', name: '光环', slot: 'head', icon: '😇', draw(p, m) {
+      const y = m.headTop - 7;
+      p(m.cx - 7, y, 14, 1, '#ffe89a');
+      p(m.cx - 8, y + 1, 1, 1, '#ffe89a'); p(m.cx + 7, y + 1, 1, 1, '#ffe89a');
+      p(m.cx - 7, y - 1, 14, 1, 'rgba(255,232,154,0.35)');
+    } },
+  { id: 'star', name: '星星胸针', slot: 'body', icon: '⭐', draw(p, m) {
+      const x = m.cx - 5, y = m.bodyTop + 3;
+      p(x, y, 3, 1, '#ffe89a'); p(x + 1, y - 1, 1, 3, '#ffe89a');
+    } },
+  { id: 'bell', name: '铃铛项圈', slot: 'neck', icon: '🔔', draw(p, m) {
+      const y = m.bodyTop - 1;
+      p(m.cx - 6, y, 12, 2, '#c0453f');
+      p(m.cx - 1, y + 2, 3, 2, '#f7c948');
+      p(m.cx, y + 3, 1, 1, '#a8821f');
+    } },
+  { id: 'glasses2', name: '圆框眼镜', slot: 'face', icon: '👓', draw(p, m) {
+      const y = m.headTop + 6;
+      p(m.cx - 7, y, 5, 1, '#4a3a5e'); p(m.cx - 7, y + 3, 5, 1, '#4a3a5e');
+      p(m.cx - 7, y, 1, 4, '#4a3a5e'); p(m.cx - 3, y, 1, 4, '#4a3a5e');
+      p(m.cx + 2, y, 5, 1, '#4a3a5e'); p(m.cx + 2, y + 3, 5, 1, '#4a3a5e');
+      p(m.cx + 2, y, 1, 4, '#4a3a5e'); p(m.cx + 6, y, 1, 4, '#4a3a5e');
+      p(m.cx - 2, y + 1, 4, 1, '#4a3a5e');
+    } },
+  { id: 'cape', name: '星空披风', slot: 'back', icon: '🌌', draw(p, m) {
+      const col = '#3a2f72', col2 = '#54439c';
+      p(m.bx - 5, m.bodyTop, 5, m.feetY - m.bodyTop - 3, col);
+      p(m.bx + m.bodyW, m.bodyTop, 5, m.feetY - m.bodyTop - 3, col);
+      p(m.bx - 4, m.bodyTop + 2, 2, 3, col2);
+      p(m.bx + m.bodyW + 1, m.bodyTop + 5, 2, 3, col2);
+      p(m.bx - 3, m.bodyTop + 8, 1, 1, '#ffe89a');
+      p(m.bx + m.bodyW + 2, m.bodyTop + 11, 1, 1, '#ffe89a');
+    } }
+];
+const DECOR_MAP = Object.fromEntries(DECOR.map(d => [d.id, d]));
+
+/* ============================================================
+   食物
+   ============================================================ */
+const FOODS = [
+  { id: 'pudding', name: '焦糖布丁', draw(p, x, y) {
+      p(x, y + 2, 7, 4, '#f7c948'); p(x + 1, y + 1, 5, 1, '#fff3c4'); p(x, y + 1, 7, 1, '#c98f3a');
+      p(x + 1, y, 5, 1, '#fff8e0');
+    } },
+  { id: 'donut', name: '草莓甜甜圈', draw(p, x, y) {
+      p.circle(x + 3, y + 3, 3, '#e8b47a'); p.circle(x + 3, y + 3, 1, null);
+      p(x + 1, y, 5, 1, '#f59ab8'); p(x, y + 1, 7, 1, '#f59ab8'); p(x, y + 2, 2, 1, '#f59ab8');
+      p(x + 5, y + 2, 2, 1, '#f59ab8'); p(x + 1, y + 5, 5, 1, '#f59ab8');
+      p(x + 2, y + 1, 1, 1, '#fff3b0'); p(x + 4, y + 4, 1, 1, '#7fdaad');
+    } },
+  { id: 'cake', name: '草莓蛋糕', draw(p, x, y) {
+      p(x, y + 2, 8, 3, '#fff0f5'); p(x, y + 2, 8, 1, '#f59ab8');
+      p(x, y + 5, 8, 1, '#e8d0b8');
+      p(x + 3, y, 2, 2, '#e0574d'); p(x + 3, y - 1, 1, 1, '#4fb286');
+    } },
+  { id: 'dango', name: '三色团子', draw(p, x, y) {
+      p(x + 2, y + 1, 3, 2, '#fff6e0'); p(x + 2, y + 3, 3, 2, '#f7a8c4'); p(x + 2, y + 5, 3, 2, '#a8d8a0');
+      p(x + 3, y, 1, 1, '#8a6247');
+    } },
+  { id: 'cocoa', name: '热可可', draw(p, x, y) {
+      p(x, y + 2, 7, 5, '#fff8ec'); p(x + 1, y + 3, 5, 3, '#8a5a3a');
+      p(x + 1, y + 1, 5, 1, '#fff8ec');
+      p(x + 2, y + 3, 3, 1, '#fff8ec');
+      p(x + 8, y + 3, 1, 3, '#fff8ec'); p(x + 8, y + 2, 1, 1, '#fff8ec');
+      p(x + 2, y, 1, 1, '#e8d8c8'); p(x + 4, y - 1, 1, 1, '#e8d8c8');
+    } },
+  { id: 'onigiri', name: '饭团', draw(p, x, y) {
+      p(x + 2, y, 4, 1, '#fff8ec'); p(x + 1, y + 1, 6, 5, '#fff8ec'); p(x, y + 5, 8, 1, '#fff8ec');
+      p(x + 2, y + 2, 4, 3, '#2b2138'); p(x + 3, y + 3, 2, 1, '#e0574d');
+    } },
+  { id: 'sushi', name: '寿司', draw(p, x, y) {
+      p(x, y + 3, 8, 3, '#fff8ec'); p(x, y + 2, 8, 1, '#f0e0c8');
+      p(x, y, 8, 2, '#f59ab8'); p(x + 1, y + 1, 6, 1, '#f7c1d2');
+      p(x, y, 1, 3, '#2b2138');
+    } },
+  { id: 'cookie', name: '小饼干', draw(p, x, y) {
+      p.circle(x + 4, y + 3, 4, '#d9a05e'); p.circle(x + 4, y + 3, 3, '#e8b47a');
+      p(x + 2, y + 2, 1, 1, '#5f4029'); p(x + 5, y + 3, 1, 1, '#5f4029'); p(x + 4, y + 5, 1, 1, '#5f4029');
+    } }
+];
+const FOOD_MAP = Object.fromEntries(FOODS.map(f => [f.id, f]));
+
+/* ============================================================
+   习惯小形象
+   ============================================================ */
+const ICONS = ['star', 'moon', 'drop', 'flame', 'leaf', 'heart'];
+function drawIcon(p, id, ox, oy, col) {
+  const c = col || '#ffd76e';
+  if (id === 'star') {
+    p(ox + 3, oy, 2, 2, c); p(ox + 1, oy + 2, 6, 2, c);
+    p(ox, oy + 4, 8, 1, c); p(ox + 1, oy + 5, 2, 2, c); p(ox + 5, oy + 5, 2, 2, c);
+  } else if (id === 'moon') {
+    p(ox + 2, oy, 4, 1, c);
+    p(ox + 1, oy + 1, 3, 2, c);
+    p(ox + 1, oy + 3, 2, 3, c);
+    p(ox + 2, oy + 6, 4, 1, c);
+    p(ox + 2, oy + 2, 1, 1, '#fff8ec');
+  } else if (id === 'drop') {
+    p(ox + 3, oy, 2, 2, c); p(ox + 2, oy + 2, 4, 2, c); p(ox + 1, oy + 4, 6, 2, c);
+    p(ox + 2, oy + 5, 2, 1, 'rgba(255,255,255,.55)');
+  } else if (id === 'flame') {
+    p(ox + 3, oy, 2, 2, c); p(ox + 2, oy + 2, 4, 3, c); p(ox + 1, oy + 4, 6, 3, c);
+    p(ox + 3, oy + 4, 2, 3, '#fff3c4');
+  } else if (id === 'leaf') {
+    p(ox + 2, oy + 1, 4, 4, c); p(ox + 1, oy + 2, 2, 3, c); p(ox + 5, oy + 2, 2, 2, c);
+    p(ox + 2, oy + 5, 1, 2, '#8a6247');
+  } else {
+    p(ox + 1, oy + 1, 2, 3, c); p(ox + 5, oy + 1, 2, 3, c);
+    p(ox + 1, oy + 3, 6, 2, c); p(ox + 2, oy + 5, 4, 1, c); p(ox + 3, oy + 6, 2, 1, c);
+  }
+}
+const ICON_COLOR = { star: '#ffd76e', moon: '#c9c2ff', drop: '#8fd0ff', flame: '#ff9a6a', leaf: '#8fe0a0', heart: '#ff9ab5' };
+const ICON_NAME = { star: '星星', moon: '月亮', drop: '水滴', flame: '火苗', leaf: '叶子', heart: '爱心' };
+
+/* ============================================================
+   Habit Quest — 云端账号 + 进度同步
+   依赖：@tencent-ai/workbuddy-cloud-sdk（CDN，全局 WorkBuddyCloud）
+   ============================================================ */
+
+/* publicConfig：来自云服务开通结果，可随前端一同发布 */
+const CLOUD_CFG = {
+  endpoint: 'https://habit-quest-29235.app.workbuddy.host',
+  oauthRelayBaseUrl: 'https://www.workbuddy.cn/v2/as/genie-baas/oauth',
+  publishableKey: 'wbpk_BXyfHvSnfuIIu3FoXCK0iT_c793d0TTqLfu7BPocRjhG3FvN9eSzyPb'
+};
+
+const SYNC_TABLE = 'game_states';
+const STATE_VER = 3;
+
+const Cloud = (() => {
+  let client = null;
+  let session = null;
+  let onReady = null;
+
+  let pushTimer = null;
+  let pushing = false;
+  let dirtyAgain = false;
+  let lastError = null;
+
+  let mode = 'email';               // email（手机短信已下线）
+  let pending = null;               // { target, verificationId, isExistingUser }
+  let coolTimer = null;
+  let coolLeft = 0;
+  let busy = false;
+
+  const G = (id) => document.getElementById(id);
+
+  /* ---------------- 同步状态 ---------------- */
+  function setSync(kind, text) {
+    const dot = G('syncDot');
+    if (dot) dot.className = 'sync-dot' + (kind ? ' ' + kind : '');
+    const t = G('syncText');
+    if (t) t.textContent = text;
+  }
+
+  function gateErr(msg) {
+    const el = G('gateErr');
+    if (el) el.textContent = msg || '';
+  }
+
+  function acctRender() {
+    const el = G('acctText');
+    if (!el) return;
+    if (!session) { el.textContent = '未登录'; return; }
+    const who = session.user && (session.user.name || session.user.email || session.user.phone);
+    el.innerHTML = '已登录' + (who ? ' · <b>' + escapeWho(who) + '</b>' : '') + ' · 进度已云端保存';
+  }
+  const escapeWho = (s) => String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
+
+  /* ---------------- 门 ---------------- */
+  function drawGateHero() {
+    const cv = G('gateCanvas');
+    if (!cv || typeof drawScene !== 'function' || typeof CHARS === 'undefined') return;
+    const p = mkPainter(cv.getContext('2d'));
+    drawScene(p, 'sunrise', 47);
+    [[6, 'prince'], [34, 'princess'], [62, 'cat']].forEach(([ox, k]) => {
+      p.ellipse(ox + 16, 57, 9, 2, 'rgba(20,10,30,0.18)');
+      CHARS[k].draw(p, 1, ox, 26);
+    });
+  }
+
+  function gateShow(view) {
+    const gate = G('gate');
+    if (gate) gate.classList.add('show');
+    const loading = G('gateLoading');
+    const form = G('gateForm');
+    if (loading) loading.hidden = view !== 'loading';
+    if (form) form.hidden = view !== 'form';
+  }
+
+  function gateHide() {
+    const gate = G('gate');
+    if (gate) gate.classList.remove('show');
+  }
+
+  function setLoadingText(txt) {
+    const el = G('gateLoading');
+    if (el) el.querySelector('span').textContent = txt;
+  }
+
+  /* ---------------- 初始化 ---------------- */
+  async function init() {
+    if (!window.WorkBuddyCloud || !window.WorkBuddyCloud.createWorkBuddyCloud) return false;
+    client = window.WorkBuddyCloud.createWorkBuddyCloud({
+      endpoint: CLOUD_CFG.endpoint,
+      oauthRelayBaseUrl: CLOUD_CFG.oauthRelayBaseUrl,
+      publishableKey: CLOUD_CFG.publishableKey
+    });
+    return true;
+  }
+
+  async function getSession() {
+    const { data, error } = await client.auth.getSession();
+    if (error) return null;
+    return data || null;
+  }
+
+  /* ---------------- 云端读写 ---------------- */
+  async function pull() {
+    const { data, error } = await client.database.from(SYNC_TABLE).select('state, updated_at').maybeSingle();
+    if (error) throw error;
+    return data && data.state ? data.state : null;
+  }
+
+  async function pushNow() {
+    if (!session || !client) return;
+    pushing = true;
+    setSync('ing', '同步中');
+    try {
+      const state = onReady && onReady.getState ? onReady.getState() : null;
+      if (!state) { pushing = false; return; }
+      const payload = { state, schema_version: STATE_VER, updated_at: new Date().toISOString() };
+      const { error } = await client.database.from(SYNC_TABLE).upsert(payload, { onConflict: 'owner_id' });
+      if (error) throw error;
+      lastError = null;
+      setSync('ok', '已同步');
+    } catch (e) {
+      lastError = e;
+      setSync('bad', '同步失败');
+      console.warn('[cloud] push failed:', e && (e.message || e));
+    } finally {
+      pushing = false;
+      if (dirtyAgain) { dirtyAgain = false; pushNow(); }
+    }
+  }
+
+  function queuePush() {
+    if (!session) return;
+    setSync('ing', '同步中');
+    if (pushTimer) clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => {
+      pushTimer = null;
+      if (pushing) { dirtyAgain = true; return; }
+      pushNow();
+    }, 900);
+  }
+
+  async function pushNowWait() {
+    if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; }
+    await pushNow();
+  }
+
+  async function clearRemote() {
+    if (!client || !session) return;
+    const { error } = await client.database.from(SYNC_TABLE).delete();
+    if (error) throw error;
+  }
+
+  /* ---------------- 登录交互 ---------------- */
+  function setTab(next) {
+    mode = next;
+    const tp = G('tabPhone'), te = G('tabEmail');
+    if (tp) tp.classList.toggle('on', mode === 'phone');
+    if (te) te.classList.toggle('on', mode === 'email');
+    const inp = G('gateId');
+    if (inp) {
+      inp.value = '';
+      inp.placeholder = mode === 'phone' ? '请输入 11 位手机号' : '请输入邮箱地址';
+      inp.maxLength = mode === 'phone' ? 11 : 60;
+      inp.inputMode = mode === 'phone' ? 'numeric' : 'email';
+      inp.autocomplete = mode === 'phone' ? 'tel' : 'email';
+    }
+    const code = G('gateCode');
+    if (code) code.value = '';
+    pending = null;
+    gateErr('');
+    resetCool();
+  }
+
+  function resetCool() {
+    coolLeft = 0;
+    if (coolTimer) { clearInterval(coolTimer); coolTimer = null; }
+    const btn = G('gateSend');
+    if (btn) { btn.disabled = false; btn.textContent = '获取验证码'; }
+  }
+
+  function startCool(sec) {
+    coolLeft = sec;
+    const btn = G('gateSend');
+    if (!btn) return;
+    btn.disabled = true;
+    btn.textContent = coolLeft + ' 秒';
+    if (coolTimer) clearInterval(coolTimer);
+    coolTimer = setInterval(() => {
+      coolLeft -= 1;
+      if (coolLeft <= 0) { resetCool(); return; }
+      btn.textContent = coolLeft + ' 秒';
+    }, 1000);
+  }
+
+  function readTarget() {
+    const inp = G('gateId');
+    const v = inp ? inp.value.trim() : '';
+    if (mode === 'phone') {
+      if (!/^1\d{10}$/.test(v)) { gateErr('请输入正确的 11 位手机号'); return null; }
+    } else {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { gateErr('请输入正确的邮箱地址'); return null; }
+    }
+    gateErr('');
+    return v;
+  }
+
+  async function sendCode() {
+    if (busy || !client) return;
+    const target = readTarget();
+    if (!target) return;
+    busy = true;
+    const btn = G('gateSend');
+    if (btn) btn.disabled = true;
+    gateErr('');
+    try {
+      const sent = mode === 'phone'
+        ? await client.auth.sendOtp({ phone: target })
+        : await client.auth.sendOtp({ email: target });
+      if (sent.error) { gateErr(prettyErr(sent.error)); return; }
+      const d = sent.data || {};
+      pending = { target, verificationId: d.verificationId, isExistingUser: !!d.isExistingUser };
+      startCool(60);
+      const tip = G('gateTip');
+      if (tip) tip.innerHTML = '验证码已发送，请查看' + (mode === 'phone' ? '短信' : '邮箱') + '。<br>没收到可以等 60 秒后重发。';
+    } catch (e) {
+      gateErr(prettyErr(e));
+    } finally {
+      busy = false;
+      const b = G('gateSend');
+      if (b && coolLeft <= 0) b.disabled = false;
+    }
+  }
+
+  async function submitCode() {
+    if (busy || !client) return;
+    const target = readTarget();
+    if (!target) return;
+    const codeEl = G('gateCode');
+    const token = codeEl ? codeEl.value.trim() : '';
+    if (!pending || pending.target !== target) { gateErr('请先获取验证码'); return; }
+    if (!/^\d{4,8}$/.test(token)) { gateErr('请输入收到的验证码'); return; }
+    busy = true;
+    const btn = G('gateSubmit');
+    if (btn) { btn.disabled = true; btn.textContent = '登录中…'; }
+    gateErr('');
+    try {
+      const args = {
+        verificationId: pending.verificationId,
+        isExistingUser: pending.isExistingUser,
+        token
+      };
+      if (mode === 'phone') args.phone = pending.target; else args.email = pending.target;
+      const done = await client.auth.verifyOtp(args);
+      if (done.error) { gateErr(prettyErr(done.error)); return; }
+      pending = null;
+      resetCool();
+      const s = await getSession();
+      if (!s) { gateErr('登录状态获取失败，请再试一次'); return; }
+      session = s;
+      acctRender();
+      await startGame();
+    } catch (e) {
+      gateErr(prettyErr(e));
+    } finally {
+      busy = false;
+      const b = G('gateSubmit');
+      if (b) { b.disabled = false; b.textContent = '登录 / 注册'; }
+    }
+  }
+
+  function prettyErr(e) {
+    const raw = (e && (e.message || e.msg)) || '';
+    const status = e && e.status;
+    // 短信通道：单手机号每日/每分钟条数上限
+    if (/PhoneNumberDailyLimit|single mobile number every day/i.test(raw))
+      return '这个手机号今天的验证码已发满（短信有单号每日条数上限），请明天再试，或直接用微信 / 邮箱登录。';
+    if (/LimitExceeded|exceeds the upper limit|DailyLimit/i.test(raw))
+      return '验证码发送次数已达上限，请明天再试，或改用微信 / 邮箱登录。';
+    if (/FrequencyLimit|too frequent|TooManyRequests|too many requests/i.test(raw))
+      return '发送太频繁了，请等 1 分钟后再试。';
+    if (/PhoneNumber.*regex|invalid.*PhoneNumber|invalid_argument/i.test(raw))
+      return '手机号格式不对，请检查后重试。';
+    if (/SmsSignature|signature|template.*not approved|not approved/i.test(raw))
+      return '短信签名或模板未通过审核，暂时发不出去。请先用微信 / 邮箱登录。';
+    if (/未开启|not enabled/i.test(raw)) return raw + '（管理员可在云服务面板开启该登录方式）';
+    if (/network|fetch|failed to fetch|timeout/i.test(raw)) return '网络不太稳定，请稍后重试';
+    if (status === 0 && !raw) return '操作失败，请重试';
+    return raw || '操作失败，请重试';
+  }
+
+  /* ---------------- 第三方登录（微信 / WorkBuddy） ---------------- */
+  const CALLBACK_KEYS = ['code', 'state', 'provider', 'provider_id', 'error', 'error_description'];
+
+  function hasCallback() {
+    const u = new URL(location.href);
+    return u.searchParams.has('code') || u.searchParams.has('error');
+  }
+
+  function clearCallbackParams() {
+    const u = new URL(location.href);
+    let dirty = false;
+    CALLBACK_KEYS.forEach((k) => {
+      if (u.searchParams.has(k)) { u.searchParams.delete(k); dirty = true; }
+    });
+    if (!dirty) return;
+    history.replaceState(null, '', u.pathname + u.search + u.hash);
+  }
+
+  function oauthRedirectTarget() {
+    const back = new URL(location.href);
+    back.pathname = '/';
+    CALLBACK_KEYS.forEach((k) => back.searchParams.delete(k));
+    return back.toString();
+  }
+
+  const PROVIDER_LABEL = { wechat: '微信', workbuddy: 'WorkBuddy' };
+
+  async function handleOAuthCallback() {
+    const u = new URL(location.href);
+    const provider = u.searchParams.get('provider');
+    gateShow('loading');
+    if (!provider || !PROVIDER_LABEL[provider]) {
+      clearCallbackParams();
+      setLoadingText('登录信息不完整');
+      gateShow('form');
+      gateErr('授权回调缺少有效的登录方式，请重新登录。');
+      return;
+    }
+    setLoadingText('正在完成' + PROVIDER_LABEL[provider] + '登录…');
+    const fn = provider === 'wechat' ? client.auth.handleWechatWebCallback : client.auth.handleWorkBuddyCallback;
+    if (typeof fn !== 'function') {
+      clearCallbackParams();
+      gateShow('form');
+      gateErr('当前云端组件版本不支持该登录方式，请刷新页面后重试。');
+      return;
+    }
+    let s = null;
+    try {
+      const res = await fn.call(client.auth);
+      if (res && res.error) {
+        clearCallbackParams();
+        gateShow('form');
+        gateErr(prettyErr(res.error));
+        return;
+      }
+      s = res && res.data ? res.data : null;
+    } catch (e) {
+      clearCallbackParams();
+      gateShow('form');
+      gateErr(prettyErr(e));
+      return;
+    }
+    clearCallbackParams();
+    if (!s) { gateShow('form'); return; }
+    session = s;
+    acctRender();
+    await startGame();
+  }
+
+  async function oauth(provider) {
+    if (busy || !client) return;
+    if (!PROVIDER_LABEL[provider]) return;
+    busy = true;
+    gateErr('');
+    const btn = G(provider === 'wechat' ? 'btnWechat' : 'btnWorkbuddy');
+    const label = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.textContent = '跳转中…'; }
+    try {
+      const { data, error } = await client.auth.signInWithOAuth({
+        provider,
+        redirectTo: oauthRedirectTarget()
+      });
+      if (error) { gateErr(prettyErr(error)); return; }
+      if (!data || !data.url) { gateErr('无法发起登录，请稍后再试'); return; }
+      location.assign(data.url);
+      return;
+    } catch (e) {
+      gateErr(prettyErr(e));
+    } finally {
+      busy = false;
+      if (btn) { btn.disabled = false; btn.innerHTML = label; }
+    }
+  }
+
+  /* ---------------- 启动 ---------------- */
+  async function startGame() {
+    gateShow('loading');
+    setLoadingText('正在读取你的存档…');
+    let state = null;
+    try {
+      state = await pull();
+    } catch (e) {
+      setLoadingText('存档读取失败');
+      gateErr('无法读取云端存档：' + prettyErr(e));
+      const btn = G('gateReload');
+      if (btn) btn.hidden = false;
+      return;
+    }
+    gateHide();
+    setSync('ok', '已同步');
+    if (onReady && onReady.enter) onReady.enter(state);
+  }
+
+  async function boot(handlers) {
+    onReady = handlers || {};
+    drawGateHero();
+    gateShow('loading');
+    setLoadingText('正在连接云端…');
+
+    const ok = await init();
+    if (!ok) {
+      setLoadingText('云端组件加载失败');
+      gateErr('网络异常，无法加载登录组件。请检查网络后刷新页面。');
+      return;
+    }
+    // 授权回调必须先于任何登录门判断处理：code 是一次性的
+    if (hasCallback()) {
+      await handleOAuthCallback();
+      return;
+    }
+    let s = null;
+    try { s = await getSession(); } catch (e) { s = null; }
+    if (!s) {
+      session = null;
+      gateShow('form');
+      gateErr('');
+      return;
+    }
+    session = s;
+    acctRender();
+    await startGame();
+  }
+
+  async function signOut() {
+    try { await pushNowWait(); } catch (e) { }
+    try { if (client) await client.auth.signOut(); } catch (e) { }
+    session = null;
+  }
+
+  function isSignedIn() { return !!session; }
+
+  return {
+    boot, signOut, isSignedIn, queuePush, pushNowWait, clearRemote,
+    setTab, sendCode, submitCode, oauth, acctRender, setSync,
+    get current() { return session; },
+    get mode() { return mode; }
+  };
+})();
+
+/* ---------------- 门上的事件绑定 ---------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  const send = document.getElementById('gateSend');
+  const sub = document.getElementById('gateSubmit');
+  const idEl = document.getElementById('gateId');
+  if (send) send.onclick = () => Cloud.sendCode();
+  if (sub) sub.onclick = () => Cloud.submitCode();
+  if (idEl) idEl.addEventListener('input', () => {
+    const err = document.getElementById('gateErr');
+    if (err) err.textContent = '';
+  });
+  const reload = document.getElementById('gateReload');
+  if (reload) reload.onclick = () => location.reload();
+  const wx = document.getElementById('btnWechat');
+  const wb = document.getElementById('btnWorkbuddy');
+  if (wx) wx.onclick = () => Cloud.oauth('wechat');
+  if (wb) wb.onclick = () => Cloud.oauth('workbuddy');
+});
+
+/* ============================================================
+   Habit Quest — 应用逻辑
+   ============================================================ */
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const KEY = 'habitQuest.v2';
+
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+let S = null;
+const load = () => { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } };
+const save = () => {
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { }
+  if (window.Cloud && S && Cloud.isSignedIn()) Cloud.queuePush();
+};
+
+/* ---------- 常量 ---------- */
+const STAGE_META = {
+  1: { name: '初芽', en: 'SPROUT' },
+  2: { name: '抽枝', en: 'BUDDING' },
+  3: { name: '生长', en: 'GROWING' },
+  4: { name: '绽放', en: 'BLOOM' },
+  5: { name: '加冕', en: 'CROWNED' }
+};
+const EVO_DAYS = [3, 7, 14, 21];
+
+const PRAISES = [
+  '今天的你，比昨天多了一点点厉害。', '盖章确认：这件事你做到了。', '星星替你记下了这一笔。',
+  '小小的一步，也是往前走。', '肌肉（和意志力）正在悄悄长出来。', '这种稳定感，比爆发更难。',
+  '你没有等「有状态」才行动，这就是大人。', '打卡成功，今天的自己可以被表扬。', '看起来很小，攒起来很大。',
+  '你把「想做」变成了「做了」。', '这颗星星是专门留给你的。', '干得漂亮，继续保持这个节奏。',
+  '今天的坚持，是未来的底气。', '你战胜的不是任务，是那 3 秒的犹豫。', '记录 +1，人生进度条 +1。',
+  '这条习惯正在变成你的本能。', '你比想象中更可靠。', '不为别的，就为你真的去做了。',
+  '今天也稳稳地接住了自己。', '有人在偷偷为你骄傲（是我）。', '这件小事，值得被认真对待。',
+  '你很擅长「开始」，现在也擅长「继续」。', '又靠近那个理想版本一点点了。', '完成，是最性感的一个词。',
+  '你的耐心正在变成一种天赋。', '这不是打卡，这是给自己投票。', '微小但确定，这就是复利。',
+  '今天的努力已经存进你的账户了。', '做完了，可以理直气壮地休息。', '你正在成为「说到做到」的人。',
+  '给你发一枚今日份的小红花。', '坚持这件事，你已经开始擅长了。', '你在给自己的未来铺路。',
+  '一关一关打过去，很帅。', '今天的你状态在线。', '不慌不忙，但你一直在动。',
+  '这件事已经有一点点像你了。', '一次不算什么，但这是第 N 次。', '你的自律在发光。'
+];
+
+const REWARD_POOL = [
+  '打 10 分钟游戏', '吃一个甜品', '点一杯喜欢的奶茶', '看一集剧', '刷 15 分钟短视频',
+  '泡一杯好茶 / 咖啡', '躺平 10 分钟什么都不做', '听一整张专辑', '买一束小花', '给自己敷个面膜',
+  '午睡 20 分钟', '买一支新口红', '去楼下散步 15 分钟', '看 20 页小说', '给自己点一份想吃的外卖',
+  '洗个热水澡 + 泡脚', '在购物车里买一件小东西', '和朋友聊 20 分钟', '看一场电影', '吃一份水果碗',
+  '允许自己今晚早睡', '给房间换一束花', '玩半小时拼图 / 游戏', '买一本一直想看的书', '周末睡到自然醒',
+  '点一份火锅外卖', '给自己写一句夸奖', '看一集喜欢的综艺', '撸猫 10 分钟', '去便利店随便挑一样'
+];
+
+/* 卡片标题按场景分组，保证「湖心明月」不会出现在沙漠 */
+const TITLES = {
+  desert: ['沙丘拾光者', '绿洲旅人', '沙海之王', '远方来信', '金色的路', '风起时'],
+  star: ['星语初醒', '星轨观测员', '银河摆渡人', '月光缝纫师', '星辰加冕者', '夜航星'],
+  sunrise: ['晨光旅人', '日出收藏家', '破晓骑士', '黎明守望', '第一缕光', '燃烧的地平线'],
+  lake: ['湖畔微风', '湖心明月', '流萤之约', '薄雾行者', '倒影里的自己', '静水之约']
+};
+const SCENE_DESC = {
+  desert: '风把沙吹成一条长长的路，你走得不快，但没停。',
+  star: '夜里有无数颗星星，其中一颗因为你今天做到了而亮起来。',
+  sunrise: '天刚亮，光从地平线漫过来，把昨天的疲惫冲淡了。',
+  lake: '湖面很静，你能看见自己的倒影——比 21 天前更挺直了一点。'
+};
+const AURAS = ['#ffd76e', '#7fdaad', '#8fd0ff', '#f59ab8', '#c9a8ff', '#ffb27a'];
+
+const CHAR_KEYS = ['prince', 'princess', 'cat'];
+
+/* ---------- 状态 ---------- */
+function defaultState() {
+  return {
+    v: 2, char: 'prince', name: '', habits: [], days: [], sim: 0,
+    exp: 0, hp: 60, stage: 1, cards: [], decor: [], equipped: [],
+    food: {}, rewards: [], drops: [], aura: '#ffd76e', sound: false, medal: false, created: Date.now()
+  };
+}
+const totalDays = () => Math.min(21, S.days.length + (S.sim || 0));
+const rawDays = () => S.days.length + (S.sim || 0);
+const calcStage = () => {
+  const d = totalDays();
+  if (d >= 21) return 5;
+  if (d >= 14) return 4;
+  if (d >= 7) return 3;
+  if (d >= 3) return 2;
+  return 1;
+};
+const nextEvo = () => EVO_DAYS.find(d => d > totalDays()) || null;
+/* 勋章：满 21 天颁发，之后仍可继续记录 */
+function checkMedal() {
+  if (!S.medal && rawDays() >= 21) {
+    S.medal = true;
+    setTimeout(() => {
+      confetti(220);
+      blip(1040, 0.18);
+      setTimeout(() => blip(1320, 0.22), 160);
+      toast('🏅 21 天习惯勋章达成！这一关，你通关了');
+    }, 1100);
+  }
+}
+/* 勋章卡绘制 */
+function drawMedal(p, scene) {
+  drawScene(p, scene || 'sunrise', 91);
+  p(0, 0, 96, 64, 'rgba(10,8,20,0.45)');
+  // 缎带
+  p(38, 20, 4, 12, '#c0453f'); p(54, 20, 4, 12, '#c0453f');
+  p(42, 20, 12, 3, '#96332e');
+  // 金章
+  p.circle(48, 40, 14, '#e8b64a');
+  p.circle(48, 40, 12, '#ffd76e');
+  p.circle(48, 40, 10, '#f2cf7a');
+  // 星
+  p(46, 32, 5, 3, '#fff8d4'); p(44, 35, 9, 3, '#fff8d4');
+  p(45, 38, 3, 4, '#fff8d4'); p(50, 38, 3, 4, '#fff8d4');
+  // 数字 21
+  p(43, 44, 2, 5, '#7a5a10'); p(45, 44, 2, 2, '#7a5a10'); p(45, 47, 2, 2, '#7a5a10');
+  p(49, 44, 2, 5, '#7a5a10'); p(51, 44, 2, 2, '#7a5a10'); p(53, 45, 2, 2, '#7a5a10'); p(51, 47, 2, 2, '#7a5a10');
+}
+const currentCard = () => S.cards.length ? S.cards[S.cards.length - 1] : null;
+const currentScene = () => (currentCard() && currentCard().scene) || 'star';
+
+/* ============================================================
+   绘制英雄区
+   ============================================================ */
+const heroCv = () => $('#heroCanvas');
+let heroT = 0;
+let heroFx = [];
+
+function drawHero() {
+  const cv = heroCv();
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, 96, 64);
+  const p = mkPainter(ctx);
+
+  // 场景
+  drawScene(p, currentScene(), 13 + S.stage * 17);
+
+  // 进化光晕
+  const card = currentCard();
+  if (card) {
+    const aura = card.aura || '#ffd76e';
+    ctx.globalAlpha = 0.18;
+    p.ellipse(48, 56, 20, 5, aura);
+    ctx.globalAlpha = 1;
+    for (let i = 0; i < 6; i++) {
+      const ang = heroT / 900 + i * (Math.PI / 3);
+      const rx = 26 + Math.sin(heroT / 700 + i) * 3;
+      const x = 48 + Math.cos(ang) * rx;
+      const y = 34 + Math.sin(ang) * 9;
+      p(Math.round(x), Math.round(y), 1, 1, aura);
+    }
+  }
+
+  // 影子
+  p.ellipse(48, 57, 10, 2, 'rgba(20,10,30,0.20)');
+
+  const bob = Math.sin(heroT / 620) > 0.2 ? 1 : 0;
+  const ox = 32, oy = 26 - bob;
+
+  // 背后装饰
+  const m = CHARS[S.char].draw(p, S.stage, ox, oy);
+  S.equipped.forEach(id => {
+    const d = DECOR_MAP[id];
+    if (d && d.slot === 'back') d.draw(p, m);
+  });
+  // 正面装饰
+  S.equipped.forEach(id => {
+    const d = DECOR_MAP[id];
+    if (d && d.slot !== 'back') d.draw(p, m);
+  });
+
+  // 特效
+  heroFx = heroFx.filter(f => f.life > 0);
+  heroFx.forEach(f => {
+    if (f.type === 'heart') {
+      p(Math.round(f.x), Math.round(f.y), 2, 1, '#ff9ab5');
+      p(Math.round(f.x), Math.round(f.y + 1), 1, 1, '#ff9ab5');
+      p(Math.round(f.x + 1), Math.round(f.y + 1), 1, 1, '#ff9ab5');
+      p(Math.round(f.x + 2), Math.round(f.y + 1), 1, 1, '#ff9ab5');
+      p(Math.round(f.x + 1), Math.round(f.y + 2), 1, 1, '#ff9ab5');
+    } else if (f.type === 'spark') {
+      p(Math.round(f.x), Math.round(f.y), 1, 1, f.col || '#ffe89a');
+    } else if (f.type === 'food') {
+      FOOD_MAP[f.id] && FOOD_MAP[f.id].draw(p, Math.round(f.x), Math.round(f.y));
+    }
+    f.life--;
+    f.y -= f.vy;
+    f.x += f.vx || 0;
+  });
+}
+
+function heroTick(t) {
+  heroT = t;
+  drawHero();
+  requestAnimationFrame(heroTick);
+}
+
+function addFx(list) {
+  list.forEach(f => heroFx.push(f));
+}
+
+/* ============================================================
+   渲染：整体
+   ============================================================ */
+function renderAll() {
+  if (!S) return;
+  renderHud();
+  renderHeroMeta();
+  renderCalendar();
+  renderCards();
+  renderHabits();
+  renderDrops();
+  renderWardrobe();
+  drawHero();
+}
+
+function renderHud() {
+  const d = totalDays();
+  if (rawDays() > 21) {
+    const m = ((rawDays() - 1) % 21) + 1;
+    $('#dayChip').textContent = `第 ${Math.floor((rawDays() - 1) / 21) + 1} 轮 · ${m}/21`;
+  } else {
+    $('#dayChip').textContent = `DAY ${Math.max(d, 1)} / 21`;
+  }
+  $('#soundBtn').classList.toggle('on', !!S.sound);
+}
+
+function renderHeroMeta() {
+  const c = CHARS[S.char];
+  $('#charName').textContent = S.name || c.name;
+  $('#charSub').textContent = c.sub;
+  $('#stagePill').textContent = `${STAGE_META[S.stage].name} · STAGE ${S.stage}`;
+  const mp = $('#medalPill');
+  if (mp) mp.hidden = !S.medal;
+  $('#sceneTag').textContent = SCENE_NAME[currentScene()];
+
+  const hp = clamp(S.hp, 0, 100);
+  $('#hpBar').style.width = hp + '%';
+  $('#hpTxt').textContent = `${hp}/100`;
+
+  const per = 120;
+  const inStage = S.exp % per;
+  $('#expBar').style.width = (inStage / per * 100) + '%';
+  $('#expTxt').textContent = `${inStage}/${per}`;
+
+  // 进化轨迹
+  const d = totalDays();
+  $('#evoTrack').innerHTML = EVO_DAYS.map((day, i) => {
+    const done = d >= day;
+    const isNext = nextEvo() === day;
+    return `<div class="evo-step ${done ? 'done' : ''} ${isNext ? 'next' : ''}">
+      <span class="dot">${done ? '✦' : day}</span>
+      <span class="lbl">第 ${day} 天</span>
+    </div>`;
+  }).join('');
+}
+
+function renderCalendar() {
+  const d = totalDays();
+  let html = '';
+  for (let i = 0; i < 21; i++) {
+    const filled = i < d;
+    const isToday = i === d - 1;
+    html += `<div class="cal-cell ${filled ? 'filled' : ''} ${isToday ? 'today' : ''}">
+      <span>${filled ? '✦' : i + 1}</span></div>`;
+  }
+  $('#calendar').innerHTML = html;
+  $('#calHint') && ($('#calHint').textContent = `${d}/21`);
+}
+
+function renderHabits() {
+  const box = $('#habits');
+  const tk = todayKey();
+  if (!S.habits.length) {
+    box.innerHTML = `<p class="tiny">还没有习惯，去设置里添加吧。</p>`;
+    return;
+  }
+  box.innerHTML = S.habits.map(h => {
+    const doneToday = h.last === tk;
+    return `<div class="habit ${doneToday ? 'done' : ''}" data-id="${h.id}">
+      <div class="habit-ava"><canvas class="px" width="8" height="8" data-icon="${h.icon}"></canvas></div>
+      <div class="habit-main">
+        <div class="habit-top">
+          <span class="habit-name">${escapeHtml(h.name)}</span>
+          ${h.streak > 1 ? `<span class="streak">🔥 ${h.streak}</span>` : ''}
+        </div>
+        <div class="habit-meta">累计 ${h.total} 次 · 连续 ${h.streak} 天</div>
+        <div class="bar mini"><i style="width:${Math.min(100, h.streak / 21 * 100)}%"></i></div>
+      </div>
+      <button class="btn check ${doneToday ? 'ghost' : ''}" ${doneToday ? 'disabled' : ''} data-check="${h.id}">
+        ${doneToday ? '✓ 已完成' : '打卡'}
+      </button>
+    </div>`;
+  }).join('');
+  const doneCount = S.habits.filter(h => h.last === tk).length;
+  $('#habitHint').textContent = `${doneCount}/${S.habits.length} 已打卡`;
+
+  $$('#habits canvas[data-icon]').forEach(cv => {
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, 8, 8);
+    const p = mkPainter(ctx);
+    drawIcon(p, cv.dataset.icon, 0, 0, ICON_COLOR[cv.dataset.icon]);
+  });
+}
+
+function renderCards() {
+  const box = $('#cards');
+  const total = S.cards.length + (S.medal ? 1 : 0);
+  $('#cardCount').textContent = total;
+  if (!total) {
+    box.innerHTML = `<p class="tiny">第 3 天会得到第一张卡片。每次进化都是抽卡，每个人抽到的都不一样。</p>`;
+    return;
+  }
+  let html = '';
+  if (S.medal) {
+    html += `<div class="acard medal">
+      <canvas class="px" width="96" height="64" id="medalCanvas"></canvas>
+      <div class="acard-meta">
+        <span class="acard-title">21 天习惯勋章</span>
+        <span class="acard-sub">通关纪念 · 可继续记录</span>
+      </div>
+    </div>`;
+  }
+  html += S.cards.map(c => `
+    <div class="acard">
+      <canvas class="px" width="96" height="64" data-card="${c.id}"></canvas>
+      <div class="acard-meta">
+        <span class="acard-title">${escapeHtml(c.title)}</span>
+        <span class="acard-sub">${SCENE_NAME[c.scene]} · 第 ${c.stage === 2 ? 3 : c.stage === 3 ? 7 : c.stage === 4 ? 14 : 21} 天</span>
+      </div>
+    </div>`).join('');
+  box.innerHTML = html;
+
+  if (S.medal) {
+    const mcv = $('#medalCanvas');
+    const mctx = mcv.getContext('2d');
+    mctx.clearRect(0, 0, 96, 64);
+    drawMedal(mkPainter(mctx), currentCard() && currentCard().scene);
+  }
+
+  S.cards.forEach(c => {
+    const cv = box.querySelector(`canvas[data-card="${c.id}"]`);
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, 96, 64);
+    const p = mkPainter(ctx);
+    drawScene(p, c.scene, 13 + c.stage * 17);
+    p.ellipse(48, 57, 10, 2, 'rgba(20,10,30,0.20)');
+    CHARS[S.char].draw(p, c.stage, 32, 26);
+    // 卡片星星
+    for (let i = 0; i < c.rarity; i++) {
+      p(6 + i * 5, 6, 3, 1, '#ffe89a');
+      p(7 + i * 5, 5, 1, 3, '#ffe89a');
+    }
+  });
+}
+
+function renderDrops() {
+  const box = $('#rewardDrops');
+  const recent = S.drops.slice(-8).reverse();
+  const chips = S.rewards.length
+    ? S.rewards.map(r => `<span class="chip">${escapeHtml(r)}</span>`).join('')
+    : `<span class="chip dim">未设置 · 系统随机</span>`;
+
+  box.innerHTML = `
+    <div class="chips">${chips}</div>
+    ${recent.length ? recent.map(d => `
+      <div class="drop ${d.claimed ? 'claimed' : ''}" data-drop="${d.id}">
+        <span class="drop-icon">🎁</span>
+        <span class="drop-text">${escapeHtml(d.text)}</span>
+        <button class="mini-btn" data-claim="${d.id}">${d.claimed ? '已兑现' : '兑现'}</button>
+      </div>`).join('') : `<p class="tiny">完成一次打卡就会掉一条奖励。</p>`}
+  `;
+}
+
+function renderWardrobe() {
+  $('#decorHint').textContent = `${S.decor.length} 件`;
+  const box = $('#wardrobe');
+  box.classList.toggle('empty', !S.decor.length);
+  if (!S.decor.length) {
+    box.innerHTML = `<p class="tiny">打卡有概率掉落装饰。墨镜、头花、手杖……都会随机出现。</p>`;
+  } else {
+    box.innerHTML = S.decor.map(id => {
+      const d = DECOR_MAP[id];
+      if (!d) return '';
+      const on = S.equipped.includes(id);
+      return `<button class="decor ${on ? 'on' : ''}" data-decor="${id}" title="${d.name}">
+        <canvas class="px" width="32" height="32" data-dp="${id}"></canvas>
+        <span>${d.name}</span>
+      </button>`;
+    }).join('');
+    S.decor.forEach(id => {
+      const cv = box.querySelector(`canvas[data-dp="${id}"]`);
+      if (!cv) return;
+      const ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, 32, 32);
+      const p = mkPainter(ctx);
+      const stage = Math.max(3, S.stage);
+      const m = CHARS[S.char].draw(p, stage, 0, 0);
+      const d = DECOR_MAP[id];
+      if (d.slot === 'back') { /* 重绘以叠加 */ }
+      d.draw(p, m);
+    });
+  }
+
+  // 零食袋
+  const foods = Object.keys(S.food).filter(k => S.food[k] > 0);
+  $('#foodBag').innerHTML = foods.length
+    ? foods.map(fid => {
+      const f = FOOD_MAP[fid];
+      return `<button class="food" data-feed="${fid}" title="投喂 ${f.name}">
+        <canvas class="px" width="10" height="10" data-fd="${fid}"></canvas>
+        <span>${f.name}</span><b>x${S.food[fid]}</b></button>`;
+    }).join('')
+    : `<p class="tiny">还没有零食。打卡时有概率捡到，投喂会让 TA 很开心。</p>`;
+
+  foods.forEach(fid => {
+    const cv = $(`canvas[data-fd="${fid}"]`);
+    if (!cv) return;
+    const ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, 10, 10);
+    const p = mkPainter(ctx);
+    FOOD_MAP[fid].draw(p, 1, 1);
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+/* ============================================================
+   打卡
+   ============================================================ */
+function doCheckIn(id) {
+  const h = S.habits.find(x => x.id === id);
+  if (!h) return;
+  const tk = todayKey();
+  if (h.last === tk) { toast('这个习惯今天已经打过卡啦 ✓'); return; }
+
+  const yest = dayKey(new Date(Date.now() - 864e5));
+  h.streak = h.last === yest ? h.streak + 1 : 1;
+  h.last = tk;
+  h.total++;
+  h.dates.push(tk);
+
+  S.hp = Math.min(100, S.hp + 18);
+  S.exp += 32 + Math.min(h.streak, 7) * 3;
+  if (!S.days.includes(tk)) S.days.push(tk);
+
+  confetti();
+  blip(660, 0.08);
+  showPraise(h.name);
+  dropReward();
+
+  // 装饰掉落 30%
+  if (Math.random() < 0.3) dropDecor();
+  // 零食掉落 25%
+  if (Math.random() < 0.25) dropFood();
+
+  const before = S.stage;
+  S.stage = calcStage();
+  checkMedal();
+  save();
+  renderAll();
+
+  if (S.stage > before) {
+    setTimeout(() => openGacha(S.stage), 750);
+  }
+}
+
+function dropReward() {
+  let text;
+  if (S.rewards.length) {
+    /* 用户设了自定义奖励，就只从自定义池里掉，绝不混入系统建议 */
+    const recent = new Set(S.drops.slice(-3).map(d => d.text));
+    const avail = S.rewards.filter(r => !recent.has(r));
+    text = pick(avail.length ? avail : S.rewards);
+  } else {
+    text = pick(REWARD_POOL);
+  }
+  S.drops.push({ id: 'r' + Date.now() + Math.floor(Math.random() * 99), text, claimed: false, ts: Date.now() });
+}
+
+function dropDecor() {
+  const owned = new Set(S.decor);
+  const left = DECOR.filter(d => !owned.has(d.id));
+  if (!left.length) { dropFood(); return; }
+  const d = pick(left);
+  S.decor.push(d.id);
+  toast(`获得装饰：${d.icon} ${d.name}`);
+  blip(880, 0.06);
+}
+
+function dropFood() {
+  const f = pick(FOODS);
+  S.food[f.id] = (S.food[f.id] || 0) + 1;
+  toast(`捡到零食：${f.name}`);
+}
+
+/* ---------- 夸夸 ---------- */
+let praiseBag = [];
+function showPraise(habitName) {
+  if (!praiseBag.length) praiseBag = PRAISES.slice().sort(() => Math.random() - 0.5);
+  const text = praiseBag.pop();
+  const el = document.createElement('div');
+  el.className = 'praise';
+  el.innerHTML = `<span class="pq">“</span>${text}<span class="ph">—「${escapeHtml(habitName)}」</span>`;
+  $('#praiseLayer').appendChild(el);
+  setTimeout(() => el.classList.add('out'), 2600);
+  setTimeout(() => el.remove(), 3300);
+}
+
+/* ---------- toast ---------- */
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  $('#toastLayer').appendChild(el);
+  setTimeout(() => el.classList.add('out'), 1900);
+  setTimeout(() => el.remove(), 2500);
+}
+
+/* ============================================================
+   抽卡进化
+   ============================================================ */
+let pendingCard = null;
+let gachaOpened = false;
+
+function rollCard(stage) {
+  const last = currentCard();
+  let pool = SCENES.slice();
+  if (last) pool = pool.filter(s => s !== last.scene);
+  if (!pool.length) pool = SCENES.slice();
+  const r = Math.random();
+  const rarity = r > 0.82 ? 5 : r > 0.48 ? 4 : 3;
+  const scene = pick(pool);
+  return {
+    id: 'c' + Date.now() + Math.floor(Math.random() * 999),
+    stage,
+    scene,
+    title: pick(TITLES[scene]),
+    rarity,
+    aura: pick(AURAS),
+    date: todayKey()
+  };
+}
+
+function openGacha(stage) {
+  pendingCard = rollCard(stage);
+  gachaOpened = false;
+  const ov = $('#gacha');
+  ov.classList.add('show');
+  $('#card3d').classList.remove('flip');
+  $('#gachaBtn').textContent = '开启进化 ✦';
+  $('#gachaBtn').disabled = false;
+  $('#gachaStars').textContent = '★'.repeat(pendingCard.rarity);
+  $('#gachaTitle').textContent = pendingCard.title;
+  $('#gachaDesc').textContent = SCENE_DESC[pendingCard.scene];
+  $('#gachaStage').textContent = `STAGE ${stage} · ${STAGE_META[stage].name}`;
+
+  const cv = $('#gachaCanvas');
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, 96, 64);
+  const p = mkPainter(ctx);
+  drawScene(p, pendingCard.scene, 13 + stage * 17);
+  p.ellipse(48, 57, 10, 2, 'rgba(20,10,30,0.20)');
+  CHARS[S.char].draw(p, stage, 32, 26);
+  blip(520, 0.09);
+}
+
+function revealGacha() {
+  if (!pendingCard || gachaOpened) return;
+  gachaOpened = true;
+  $('#card3d').classList.add('flip');
+  blip(990, 0.12);
+  setTimeout(() => {
+    confetti(120);
+    $('#gachaBtn').textContent = '收下这张卡';
+    $('#gachaBtn').disabled = false;
+  }, 620);
+}
+
+function closeGacha() {
+  if (!pendingCard) return;
+  S.cards.push(pendingCard);
+  S.aura = pendingCard.aura;
+  // 进化奖励：一件装饰
+  const owned = new Set(S.decor);
+  const left = DECOR.filter(d => !owned.has(d.id));
+  if (left.length) {
+    const d = pick(left);
+    S.decor.push(d.id);
+    setTimeout(() => toast(`进化奖励：${d.icon} ${d.name}`), 400);
+  }
+  pendingCard = null;
+  save();
+  $('#gacha').classList.remove('show');
+  renderAll();
+  sparkleBurst();
+}
+
+/* ============================================================
+   零食 / 装饰交互
+   ============================================================ */
+function feed(fid) {
+  if (!S.food[fid]) return;
+  S.food[fid]--;
+  S.hp = Math.min(100, S.hp + 5);
+  const f = FOOD_MAP[fid];
+  addFx([
+    { type: 'food', id: fid, x: 56, y: 44, vx: -0.35, vy: 0.35, life: 26 },
+    { type: 'heart', x: 62, y: 40, vx: 0.1, vy: 0.6, life: 30 },
+    { type: 'heart', x: 58, y: 36, vx: -0.15, vy: 0.5, life: 26 },
+    { type: 'heart', x: 66, y: 44, vx: 0.2, vy: 0.55, life: 22 }
+  ]);
+  toast(`${f.name} +1 · 它眯起了眼睛`);
+  blip(760, 0.05);
+  save(); renderAll();
+}
+
+function toggleDecor(id) {
+  if (!S.decor.includes(id)) return;
+  const i = S.equipped.indexOf(id);
+  if (i >= 0) S.equipped.splice(i, 1);
+  else {
+    const d = DECOR_MAP[id];
+    // 同槽位互斥
+    S.equipped = S.equipped.filter(x => DECOR_MAP[x] && DECOR_MAP[x].slot !== d.slot);
+    S.equipped.push(id);
+  }
+  save(); renderAll();
+}
+
+function claimDrop(id) {
+  const d = S.drops.find(x => x.id === id);
+  if (!d) return;
+  d.claimed = !d.claimed;
+  if (d.claimed) { confetti(40); toast('奖励已兑现，好好享受 ✓'); }
+  save(); renderAll();
+}
+
+/* ============================================================
+   撒花 / 特效
+   ============================================================ */
+const fxCv = () => $('#fxCanvas');
+let parts = [], fxRaf = null;
+
+function resizeFx() {
+  const cv = fxCv();
+  if (!cv) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = window.innerWidth * dpr;
+  cv.height = window.innerHeight * dpr;
+  cv.style.width = window.innerWidth + 'px';
+  cv.style.height = window.innerHeight + 'px';
+  cv.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+const CONF_COLORS = ['#ffd76e', '#7fdaad', '#8fd0ff', '#f59ab8', '#c9a8ff', '#ffb27a', '#fff8ec'];
+
+function confetti(n = 90) {
+  const cv = fxCv();
+  if (!cv) return;
+  const W = window.innerWidth, H = window.innerHeight;
+  for (let i = 0; i < n; i++) {
+    parts.push({
+      x: W / 2 + (Math.random() - 0.5) * W * 0.5,
+      y: H * 0.28 + (Math.random() - 0.5) * 60,
+      vx: (Math.random() - 0.5) * 7,
+      vy: -6 - Math.random() * 7,
+      w: 4 + Math.random() * 6,
+      h: 4 + Math.random() * 6,
+      c: pick(CONF_COLORS),
+      g: 0.24 + Math.random() * 0.12,
+      a: 1
+    });
+  }
+  if (!fxRaf) fxRaf = requestAnimationFrame(fxLoop);
+}
+
+function fxLoop() {
+  const cv = fxCv();
+  const ctx = cv.getContext('2d');
+  const W = window.innerWidth, H = window.innerHeight;
+  ctx.clearRect(0, 0, W, H);
+  parts.forEach(pt => {
+    pt.x += pt.vx; pt.y += pt.vy; pt.vy += pt.g; pt.vx *= 0.99;
+    if (pt.y > H * 0.72) pt.a -= 0.03;
+    ctx.globalAlpha = Math.max(0, pt.a);
+    ctx.fillStyle = pt.c;
+    ctx.fillRect(Math.round(pt.x), Math.round(pt.y), pt.w, pt.h);
+  });
+  ctx.globalAlpha = 1;
+  parts = parts.filter(p => p.a > 0 && p.y < H + 40);
+  if (parts.length) fxRaf = requestAnimationFrame(fxLoop);
+  else { fxRaf = null; ctx.clearRect(0, 0, W, H); }
+}
+
+function sparkleBurst() {
+  const fxs = [];
+  for (let i = 0; i < 24; i++) {
+    fxs.push({
+      type: 'spark',
+      x: 48 + (Math.random() - 0.5) * 30,
+      y: 50 + (Math.random() - 0.5) * 24,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: 0.3 + Math.random() * 0.6,
+      life: 20 + Math.random() * 20,
+      col: pick(AURAS)
+    });
+  }
+  addFx(fxs);
+}
+
+/* ---------- 音效 ---------- */
+let actx = null;
+function blip(freq = 700, dur = 0.07) {
+  if (!S || !S.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+    o.type = 'square';
+    o.frequency.value = freq;
+    g.gain.value = 0.04;
+    o.connect(g); g.connect(actx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+    o.stop(actx.currentTime + dur);
+  } catch (e) { }
+}
+
+/* ============================================================
+   引导流程
+   ============================================================ */
+let obChar = null;
+let obHabits = [];
+let obRewards = [];
+
+function buildCharPick() {
+  const box = $('#charPick');
+  box.innerHTML = CHAR_KEYS.map(k => `
+    <button class="char-card" data-char="${k}">
+      <canvas class="px" width="96" height="64" data-preview="${k}"></canvas>
+      <div class="char-card-meta">
+        <b>${CHARS[k].name}</b>
+        <span>${CHARS[k].sub}</span>
+      </div>
+    </button>`).join('');
+
+  CHAR_KEYS.forEach(k => {
+    const cv = box.querySelector(`canvas[data-preview="${k}"]`);
+    const ctx = cv.getContext('2d');
+    const p = mkPainter(ctx);
+    const sc = k === 'cat' ? 'sunrise' : k === 'prince' ? 'star' : 'lake';
+    drawScene(p, sc, k === 'cat' ? 31 : k === 'prince' ? 17 : 47);
+    p.ellipse(48, 57, 10, 2, 'rgba(20,10,30,0.20)');
+    CHARS[k].draw(p, 3, 32, 26);
+  });
+
+  box.onclick = (e) => {
+    const card = e.target.closest('.char-card');
+    if (!card) return;
+    obChar = card.dataset.char;
+    $$('.char-card').forEach(c => c.classList.toggle('sel', c === card));
+    $('#toStep2').disabled = false;
+    blip(720, 0.05);
+  };
+}
+
+function buildHabitInputs() {
+  const box = $('#habitInputs');
+  box.innerHTML = [0, 1, 2].map(i => `
+    <div class="habit-input" data-i="${i}">
+      <span class="hi-num">${i + 1}</span>
+      <input class="hi-name" maxlength="12" placeholder="${i === 0 ? '比如：早起喝一杯水' : '留空即不设置'}" />
+      <div class="hi-icons">${ICONS.map(ic => `<button class="hi-ic ${i === 0 && ic === 'star' ? 'on' : ''}" data-ic="${ic}"><canvas class="px" width="8" height="8" data-hic="${ic}"></canvas></button>`).join('')}</div>
+    </div>`).join('');
+
+  $$('#habitInputs canvas[data-hic]').forEach(cv => {
+    const ctx = cv.getContext('2d');
+    const p = mkPainter(ctx);
+    drawIcon(p, cv.dataset.hic, 0, 0, ICON_COLOR[cv.dataset.hic]);
+  });
+  $$('#habitInputs .hi-ic').forEach(btn => {
+    btn.onclick = () => {
+      $$('.hi-ic', btn.parentElement).forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      blip(640, 0.04);
+    };
+  });
+}
+
+function buildRewardChips() {
+  const box = $('#rewardChips');
+  box.innerHTML = obRewards.length
+    ? obRewards.map((r, i) => `<span class="chip">${escapeHtml(r)}<button data-rmr="${i}">×</button></span>`).join('')
+    : `<span class="chip dim">暂不设置 · 系统随机给</span>`;
+  $$('[data-rmr]').forEach(b => b.onclick = () => {
+    obRewards.splice(+b.dataset.rmr, 1);
+    buildRewardChips();
+  });
+}
+
+function startGame() {
+  const habits = [];
+  $$('#habitInputs .habit-input').forEach((row, i) => {
+    const name = $('.hi-name', row).value.trim();
+    if (!name) return;
+    const icon = $('.hi-ic.on', row)?.dataset.ic || ICONS[i % ICONS.length];
+    habits.push({
+      id: 'h' + Date.now() + i,
+      name, icon,
+      total: 0, streak: 0, last: null, dates: []
+    });
+  });
+  if (!habits.length) { toast('至少定一个习惯，才有得打卡呀'); return; }
+
+  S = defaultState();
+  S.char = obChar || 'prince';
+  S.name = CHARS[S.char].name;
+  S.habits = habits;
+  S.rewards = obRewards.slice();
+  save();
+  $('#onboard').classList.remove('show');
+  renderAll();
+  setTimeout(() => toast('21 天，从今天开始。'), 500);
+}
+
+/* ============================================================
+   设置
+   ============================================================ */
+function openSettings() {
+  $('#setName').value = S.name || '';
+  $('#setHabits').innerHTML = S.habits.map((h, i) => `
+    <div class="set-row"><span>${i + 1}</span><input data-hn="${h.id}" value="${escapeHtml(h.name)}" maxlength="12"></div>`).join('');
+  buildSetRewards();
+  if (window.Cloud) Cloud.acctRender();
+  $('#settings').classList.add('show');
+}
+
+function buildSetRewards() {
+  $('#setRewards').innerHTML = S.rewards.length
+    ? S.rewards.map((r, i) => `<span class="chip">${escapeHtml(r)}<button data-srm="${i}">×</button></span>`).join('')
+    : `<span class="chip dim">未设置</span>`;
+  $$('[data-srm]').forEach(b => b.onclick = () => {
+    S.rewards.splice(+b.dataset.srm, 1);
+    save(); buildSetRewards(); renderDrops();
+  });
+}
+
+/* 演示：直接跳到第 N 天，触发一次完整的「打卡 + 进化」效果 */
+function demoMilestone(n) {
+  $('#settings').classList.remove('show');
+  const need = n - S.days.length;
+  S.sim = Math.max(0, need);
+  S.hp = Math.min(100, S.hp + 18);
+  S.exp += 32;
+  const before = S.stage;
+  S.stage = calcStage();
+  checkMedal();
+  if (before === S.stage) {
+    /* 已经在这个形态：换一张卡重新抽，展示「每人不一样」 */
+    save(); renderAll();
+    toast('重抽一次进化效果，看看这次是什么');
+    setTimeout(() => openGacha(S.stage), 400);
+    return;
+  }
+  save(); renderAll();
+  confetti(110);
+  blip(660, 0.08);
+  showPraise(`第 ${n} 天`);
+  dropReward();
+  save(); renderAll();
+  setTimeout(() => openGacha(S.stage), 850);
+}
+
+function simulateDay() {
+  S.sim = (S.sim || 0) + 1;
+  S.exp += 24;
+  S.hp = Math.max(20, S.hp - 6);
+  const before = S.stage;
+  S.stage = calcStage();
+  checkMedal();
+  save(); renderAll();
+  toast(`快进到第 ${totalDays()} 天（预览用）`);
+  if (S.stage > before) setTimeout(() => openGacha(S.stage), 500);
+}
+
+/* ============================================================
+   事件绑定 / 初始化
+   ============================================================ */
+function bindEvents() {
+  // 打卡（事件委托）
+  document.addEventListener('click', (e) => {
+    const chk = e.target.closest('[data-check]');
+    if (chk) { doCheckIn(chk.dataset.check); return; }
+    const dc = e.target.closest('[data-decor]');
+    if (dc) { toggleDecor(dc.dataset.decor); return; }
+    const fd = e.target.closest('[data-feed]');
+    if (fd) { feed(fd.dataset.feed); return; }
+    const cl = e.target.closest('[data-claim]');
+    if (cl) { claimDrop(cl.dataset.claim); return; }
+  });
+
+  $('#soundBtn').onclick = () => {
+    S.sound = !S.sound;
+    save(); renderHud();
+    if (S.sound) blip(880, 0.08);
+    toast(S.sound ? '音效已开启' : '音效已关闭');
+  };
+
+  $('#settingsBtn').onclick = openSettings;
+
+  $('#toStep2').onclick = () => {
+    $('#ob1').hidden = true; $('#ob2').hidden = false;
+    buildHabitInputs();
+  };
+  $('#backStep1').onclick = () => { $('#ob2').hidden = true; $('#ob1').hidden = false; };
+  $('#toStep3').onclick = () => {
+    const any = $$('#habitInputs .hi-name').some(i => i.value.trim());
+    if (!any) { toast('先写下一个想养成的习惯吧'); return; }
+    $('#ob2').hidden = true; $('#ob3').hidden = false;
+    buildRewardChips();
+  };
+  $('#backStep2').onclick = () => { $('#ob3').hidden = true; $('#ob2').hidden = false; };
+  $('#addReward').onclick = () => {
+    const v = $('#rewardInput').value.trim();
+    if (!v) return;
+    if (obRewards.length >= 8) { toast('最多 8 条奖励，够用啦'); return; }
+    obRewards.push(v);
+    $('#rewardInput').value = '';
+    buildRewardChips();
+  };
+  $('#rewardInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('#addReward').click(); });
+  $('#startBtn').onclick = startGame;
+
+  // 抽卡
+  $('#gachaBtn').onclick = () => {
+    if (!gachaOpened) revealGacha();
+    else closeGacha();
+  };
+
+  // 设置面板
+  $('#setSave').onclick = () => {
+    S.name = $('#setName').value.trim() || CHARS[S.char].name;
+    $$('#setHabits input[data-hn]').forEach(inp => {
+      const h = S.habits.find(x => x.id === inp.dataset.hn);
+      if (h) h.name = inp.value.trim() || h.name;
+    });
+    save(); renderAll(); toast('已保存');
+  };
+  $('#setAddReward').onclick = () => {
+    const v = $('#setRewardInput').value.trim();
+    if (!v) return;
+    if (S.rewards.length >= 8) { toast('最多 8 条'); return; }
+    S.rewards.push(v);
+    $('#setRewardInput').value = '';
+    save(); buildSetRewards(); renderDrops();
+  };
+  $('#setSim').onclick = simulateDay;
+  $$('[data-demo]').forEach(b => {
+    b.onclick = () => demoMilestone(+b.dataset.demo);
+  });
+  $('#setReset').onclick = async () => {
+    if (!confirm('确定清空全部进度重新开始吗？账号里的云端存档也会一并清空，无法撤销。')) return;
+    try { await Cloud.clearRemote(); } catch (e) { }
+    localStorage.removeItem(KEY);
+    location.reload();
+  };
+  $('#acctOut').onclick = async () => {
+    if (!confirm('退出登录？进度已保存在云端，下次登录可以接着养。')) return;
+    await Cloud.signOut();
+    localStorage.removeItem(KEY);
+    location.reload();
+  };
+  $('#setClose').onclick = () => $('#settings').classList.remove('show');
+
+  window.addEventListener('resize', resizeFx);
+}
+
+function init() {
+  bindEvents();
+  resizeFx();
+  buildCharPick();
+
+  /* 登录后才会进入游戏：Cloud 负责门禁与云端存档读取 */
+  Cloud.boot({
+    enter: enterGame,
+    getState: () => S
+  });
+}
+
+/* 兼容旧版本存档字段 */
+function normalizeState(st) {
+  const s = st || defaultState();
+  s.sim = s.sim || 0; s.decor = s.decor || []; s.equipped = s.equipped || [];
+  s.food = s.food || {}; s.cards = s.cards || []; s.drops = s.drops || [];
+  s.medal = !!s.medal;
+  return s;
+}
+
+function enterGame(cloudState) {
+  const local = load();
+  if (cloudState) {
+    S = normalizeState(cloudState);
+  } else if (local) {
+    // 首次登录：把本机已有的进度搬到账号里
+    S = normalizeState(local);
+    Cloud.queuePush();
+    toast('已把本机进度同步到你的账号');
+  } else {
+    S = defaultState();
+  }
+  enterView();
+}
+
+function enterView() {
+  if (!S.habits || !S.habits.length) {
+    $('#onboard').classList.add('show');
+    requestAnimationFrame(heroTick);
+    return;
+  }
+  S.stage = calcStage();
+  renderAll();
+  requestAnimationFrame(heroTick);
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+</script>
+</body>
+</html>
