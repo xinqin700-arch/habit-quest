@@ -61,6 +61,7 @@ img,canvas{display:block}
 }
 .icon-btn:hover{background:#372a55; color:var(--gold)}
 .icon-btn.on{color:var(--gold); border-color:var(--gold); box-shadow:0 0 12px rgba(255,215,110,.3)}
+.icon-btn.lang-btn{font-size:10px; font-weight:800; letter-spacing:0; font-family:inherit}
 
 /* ---------- 布局 ---------- */
 main{
@@ -113,7 +114,7 @@ main{
 
 .bars{display:flex; flex-direction:column; gap:8px}
 .bar-row{display:flex; align-items:center; gap:8px}
-.bar-label{font-size:11px; color:var(--dim); width:28px; flex:none; letter-spacing:1px}
+.bar-label{font-size:11px; color:var(--dim); width:auto; min-width:28px; max-width:84px; flex:none; letter-spacing:1px; white-space:nowrap}
 .bar{
   position:relative; flex:1; height:18px; background:#0f0b1a;
   border:2px solid #3a2c59; overflow:hidden;
@@ -373,6 +374,7 @@ main{
   min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:36px 18px 44px;
 }
+.gate-lang{position:absolute; top:14px; right:14px; z-index:2}
 .gate-hero{
   width:min(430px,84vw); border:3px solid var(--line);
   box-shadow:0 0 0 3px #241c3a, 0 10px 0 rgba(0,0,0,.45);
@@ -455,12 +457,13 @@ main{
 <body>
 
 <header class="hud">
-  <div class="brand"><span class="logo">◆</span>HABIT QUEST<small>习惯星球</small></div>
+  <div class="brand"><span class="logo">◆</span>HABIT QUEST<small data-i18n="习惯星球">习惯星球</small></div>
   <div class="hud-right">
     <div class="chip-day" id="dayChip">DAY 0 / 21</div>
-    <span class="sync-dot" id="syncDot" title="云端同步状态"><i></i><span id="syncText">已同步</span></span>
-    <button class="icon-btn" id="soundBtn" title="音效开关">♪</button>
-    <button class="icon-btn" id="settingsBtn" title="设置">⚙</button>
+    <span class="sync-dot" id="syncDot" data-i18n-title="云端同步状态" title="云端同步状态"><i></i><span id="syncText" data-i18n="已同步">已同步</span></span>
+    <button class="icon-btn lang-btn" data-lang-toggle title="Language / 语言">EN</button>
+    <button class="icon-btn" id="soundBtn" data-i18n-title="音效开关" title="音效开关">♪</button>
+    <button class="icon-btn" id="settingsBtn" data-i18n-title="设置" title="设置">⚙</button>
   </div>
 </header>
 
@@ -480,11 +483,11 @@ main{
       <p class="char-sub" id="charSub"></p>
       <div class="bars">
         <div class="bar-row">
-          <span class="bar-label">活力</span>
+          <span class="bar-label" data-i18n="活力">活力</span>
           <div class="bar hp"><i id="hpBar"></i><b id="hpTxt">60/100</b></div>
         </div>
         <div class="bar-row">
-          <span class="bar-label">经验</span>
+          <span class="bar-label" data-i18n="经验">经验</span>
           <div class="bar exp"><i id="expBar"></i><b id="expTxt">0/120</b></div>
         </div>
       </div>
@@ -493,7 +496,7 @@ main{
 
     <section class="panel">
       <div class="panel-head">
-        <h3 class="panel-title">21 天轨迹</h3>
+        <h3 class="panel-title" data-i18n="21 天轨迹">21 天轨迹</h3>
         <span class="hint" id="calHint"></span>
       </div>
       <div class="calendar" id="calendar"></div>
@@ -501,8 +504,8 @@ main{
 
     <section class="panel">
       <div class="panel-head">
-        <h3 class="panel-title">成就卡片</h3>
-        <span class="hint">已收集 <b id="cardCount" style="color:var(--gold)">0</b></span>
+        <h3 class="panel-title" data-i18n="成就卡片">成就卡片</h3>
+        <span class="hint"><span data-i18n="已收集">已收集</span> <b id="cardCount" style="color:var(--gold)">0</b></span>
       </div>
       <div class="cards" id="cards"></div>
     </section>
@@ -512,7 +515,7 @@ main{
   <div class="col">
     <section class="panel">
       <div class="panel-head">
-        <h3 class="panel-title">今日微习惯</h3>
+        <h3 class="panel-title" data-i18n="今日微习惯">今日微习惯</h3>
         <span class="hint" id="habitHint"></span>
       </div>
       <div id="habits"></div>
@@ -520,15 +523,15 @@ main{
 
     <section class="panel">
       <div class="panel-head">
-        <h3 class="panel-title">奖励掉落</h3>
-        <span class="hint">完成任务随机掉一条</span>
+        <h3 class="panel-title" data-i18n="奖励掉落">奖励掉落</h3>
+        <span class="hint" data-i18n="完成任务随机掉一条">完成任务随机掉一条</span>
       </div>
       <div id="rewardDrops" class="drops"></div>
     </section>
 
     <section class="panel">
       <div class="panel-head">
-        <h3 class="panel-title">衣柜 & 零食</h3>
+        <h3 class="panel-title" data-i18n="衣柜 & 零食">衣柜 & 零食</h3>
         <span class="hint" id="decorHint"></span>
       </div>
       <div id="wardrobe" class="wardrobe"></div>
@@ -537,41 +540,42 @@ main{
   </div>
 </main>
 
-<footer class="foot">像素风 21 天习惯养成 · 进度自动保存到你的账号</footer>
+<footer class="foot" data-i18n="像素风 21 天习惯养成 · 进度自动保存到你的账号">像素风 21 天习惯养成 · 进度自动保存到你的账号</footer>
 
 <!-- 登录门：网站首页 -->
 <div id="gate">
+  <button class="icon-btn lang-btn gate-lang" data-lang-toggle title="Language / 语言">EN</button>
   <div class="gate-wrap">
     <div class="gate-hero"><canvas id="gateCanvas" width="96" height="64" class="px"></canvas></div>
-    <h1 class="gate-title">游戏化习惯养成</h1>
-    <p class="gate-sub">21 天 · 养大一只你自己</p>
+    <h1 class="gate-title" data-i18n="游戏化习惯养成">游戏化习惯养成</h1>
+    <p class="gate-sub" data-i18n="21 天 · 养大一只你自己">21 天 · 养大一只你自己</p>
     <div class="gate-card">
-      <div class="gate-loading" id="gateLoading"><i></i><span>正在读取你的存档…</span></div>
+      <div class="gate-loading" id="gateLoading"><i></i><span data-i18n="正在读取你的存档…">正在读取你的存档…</span></div>
       <div id="gateForm" hidden>
-        <div class="gate-label">邮箱验证码登录</div>
+        <div class="gate-label" data-i18n="邮箱验证码登录">邮箱验证码登录</div>
         <div class="gate-field">
           <input class="gate-input" id="gateId" type="text" inputmode="email" autocomplete="email"
-                 placeholder="请输入邮箱地址" maxlength="60">
-          <button class="gate-btn" id="gateSend" type="button">获取验证码</button>
+                 data-i18n-ph="请输入邮箱地址" placeholder="请输入邮箱地址" maxlength="60">
+          <button class="gate-btn" id="gateSend" type="button" data-i18n="获取验证码">获取验证码</button>
         </div>
         <div class="gate-field">
           <input class="gate-input" id="gateCode" type="text" inputmode="numeric" autocomplete="one-time-code"
-                 placeholder="输入 6 位验证码" maxlength="6">
+                 data-i18n-ph="输入 6 位验证码" placeholder="输入 6 位验证码" maxlength="6">
         </div>
-        <button class="gate-btn wide" id="gateSubmit" type="button">登录 / 注册</button>
-        <div class="gate-or">或用以下方式</div>
+        <button class="gate-btn wide" id="gateSubmit" type="button" data-i18n="登录 / 注册">登录 / 注册</button>
+        <div class="gate-or" data-i18n="或用以下方式">或用以下方式</div>
         <div class="gate-oauth">
-          <button class="gate-btn oauth wx" id="btnWechat" type="button">微信登录<span class="rec">推荐</span></button>
-          <button class="gate-btn oauth wb" id="btnWorkbuddy" type="button">使用 WorkBuddy 登录</button>
+          <button class="gate-btn oauth wx" id="btnWechat" type="button"><span data-i18n="微信登录">微信登录</span><span class="rec" data-i18n="推荐">推荐</span></button>
+          <button class="gate-btn oauth wb" id="btnWorkbuddy" type="button" data-i18n="使用 WorkBuddy 登录">使用 WorkBuddy 登录</button>
         </div>
         <div class="gate-err" id="gateErr"></div>
-        <div class="gate-tip" id="gateTip">
+        <div class="gate-tip" id="gateTip" data-i18n-html="第一次来会直接创建账号，不用设密码。<br>登录后进度存在云端 —— <b>换手机、换电脑都能接着养</b>。<br>不想收邮件？直接点下面的<b>微信登录</b>，扫一下就行。">
           第一次来会直接创建账号，不用设密码。<br>
           登录后进度存在云端 —— <b>换手机、换电脑都能接着养</b>。<br>
           不想收邮件？直接点下面的<b>微信登录</b>，扫一下就行。
         </div>
       </div>
-      <button class="gate-btn wide" id="gateReload" type="button" hidden style="margin-top:12px">重新读取存档</button>
+      <button class="gate-btn wide" id="gateReload" type="button" hidden style="margin-top:12px" data-i18n="重新读取存档">重新读取存档</button>
     </div>
   </div>
 </div>
@@ -580,31 +584,31 @@ main{
 <div class="overlay" id="onboard">
   <div class="onboard-box">
     <div class="ob-step" id="ob1">
-      <h1>选一个同行者</h1>
-      <p>TA 会陪你走完 21 天，并在第 3 / 7 / 14 / 21 天进化。</p>
+      <h1 data-i18n="选一个同行者">选一个同行者</h1>
+      <p data-i18n="TA 会陪你走完 21 天，并在第 3 / 7 / 14 / 21 天进化。">TA 会陪你走完 21 天，并在第 3 / 7 / 14 / 21 天进化。</p>
       <div class="char-pick" id="charPick"></div>
-      <div class="ob-actions"><button class="btn primary" id="toStep2" disabled>下一步 →</button></div>
+      <div class="ob-actions"><button class="btn primary" id="toStep2" disabled data-i18n="下一步 →">下一步 →</button></div>
     </div>
     <div class="ob-step" id="ob2" hidden>
-      <h1>定下你的微习惯</h1>
-      <p>最多 3 个，每个可以配一个自己的小形象。</p>
+      <h1 data-i18n="定下你的微习惯">定下你的微习惯</h1>
+      <p data-i18n="最多 3 个，每个可以配一个自己的小形象。">最多 3 个，每个可以配一个自己的小形象。</p>
       <div id="habitInputs"></div>
       <div class="ob-actions">
-        <button class="btn ghost2" id="backStep1">← 返回</button>
-        <button class="btn primary" id="toStep3">下一步 →</button>
+        <button class="btn ghost2" id="backStep1" data-i18n="← 返回">← 返回</button>
+        <button class="btn primary" id="toStep3" data-i18n="下一步 →">下一步 →</button>
       </div>
     </div>
     <div class="ob-step" id="ob3" hidden>
-      <h1>给自己准备奖励</h1>
-      <p>完成一次打卡会掉落一条。不设也行，系统会随机给。</p>
+      <h1 data-i18n="给自己准备奖励">给自己准备奖励</h1>
+      <p data-i18n="完成一次打卡会掉落一条。不设也行，系统会随机给。">完成一次打卡会掉落一条。不设也行，系统会随机给。</p>
       <div class="chips" id="rewardChips"></div>
       <div class="add-row">
-        <input id="rewardInput" maxlength="18" placeholder="比如：打 10 分钟游戏">
-        <button class="mini-btn" id="addReward">添加</button>
+        <input id="rewardInput" maxlength="18" data-i18n-ph="比如：打 10 分钟游戏" placeholder="比如：打 10 分钟游戏">
+        <button class="mini-btn" id="addReward" data-i18n="添加">添加</button>
       </div>
       <div class="ob-actions">
-        <button class="btn ghost2" id="backStep2">← 返回</button>
-        <button class="btn primary" id="startBtn">开始 21 天 ✦</button>
+        <button class="btn ghost2" id="backStep2" data-i18n="← 返回">← 返回</button>
+        <button class="btn primary" id="startBtn" data-i18n="开始 21 天 ✦">开始 21 天 ✦</button>
       </div>
     </div>
   </div>
@@ -613,7 +617,7 @@ main{
 <!-- 抽卡 -->
 <div class="overlay" id="gacha">
   <div class="gacha-wrap">
-    <div class="gacha-title">进 化 抽 卡</div>
+    <div class="gacha-title" data-i18n="进 化 抽 卡">进 化 抽 卡</div>
     <div class="card3d" id="card3d">
       <div class="face back">?</div>
       <div class="face front">
@@ -626,42 +630,42 @@ main{
         </div>
       </div>
     </div>
-    <button class="btn primary" id="gachaBtn">开启进化 ✦</button>
+    <button class="btn primary" id="gachaBtn" data-i18n="开启进化 ✦">开启进化 ✦</button>
   </div>
 </div>
 
 <!-- 设置 -->
 <div class="overlay" id="settings">
   <div class="set-box">
-    <h3>设 置</h3>
-    <label class="set-label">角色名</label>
+    <h3 data-i18n="设 置">设 置</h3>
+    <label class="set-label" data-i18n="角色名">角色名</label>
     <input id="setName" maxlength="10">
-    <label class="set-label">习惯名称</label>
+    <label class="set-label" data-i18n="习惯名称">习惯名称</label>
     <div id="setHabits"></div>
-    <label class="set-label">自定义奖励（最多 8 条）</label>
+    <label class="set-label" data-i18n="自定义奖励（最多 8 条）">自定义奖励（最多 8 条）</label>
     <div class="chips" id="setRewards"></div>
     <div class="add-row">
-      <input id="setRewardInput" maxlength="18" placeholder="添加一条奖励">
-      <button class="mini-btn" id="setAddReward">添加</button>
+      <input id="setRewardInput" maxlength="18" data-i18n-ph="添加一条奖励" placeholder="添加一条奖励">
+      <button class="mini-btn" id="setAddReward" data-i18n="添加">添加</button>
     </div>
-    <label class="set-label">进化演示 · 直接跳到第 N 天看打卡效果</label>
+    <label class="set-label" data-i18n="进化演示 · 直接跳到第 N 天看打卡效果">进化演示 · 直接跳到第 N 天看打卡效果</label>
     <div class="demo-row">
-      <button class="mini-btn" data-demo="3">第 3 天</button>
-      <button class="mini-btn" data-demo="7">第 7 天</button>
-      <button class="mini-btn" data-demo="14">第 14 天</button>
-      <button class="mini-btn" data-demo="21">第 21 天</button>
+      <button class="mini-btn" data-demo="3" data-i18n="第 3 天">第 3 天</button>
+      <button class="mini-btn" data-demo="7" data-i18n="第 7 天">第 7 天</button>
+      <button class="mini-btn" data-demo="14" data-i18n="第 14 天">第 14 天</button>
+      <button class="mini-btn" data-demo="21" data-i18n="第 21 天">第 21 天</button>
     </div>
-    <label class="set-label">账号</label>
+    <label class="set-label" data-i18n="账号">账号</label>
     <div class="acct">
-      <span id="acctText">未登录</span>
-      <button class="mini-btn" id="acctOut">退出登录</button>
+      <span id="acctText" data-i18n="未登录">未登录</span>
+      <button class="mini-btn" id="acctOut" data-i18n="退出登录">退出登录</button>
     </div>
     <div class="set-actions">
-      <button class="btn" id="setSave">保存修改</button>
-      <button class="btn ghost2" id="setSim">预览：快进一天 ⏩</button>
+      <button class="btn" id="setSave" data-i18n="保存修改">保存修改</button>
+      <button class="btn ghost2" id="setSim" data-i18n="预览：快进一天 ⏩">预览：快进一天 ⏩</button>
       <div class="row">
-        <button class="btn ghost2" id="setClose">关闭</button>
-        <button class="btn danger" id="setReset">重置全部</button>
+        <button class="btn ghost2" id="setClose" data-i18n="关闭">关闭</button>
+        <button class="btn danger" id="setReset" data-i18n="重置全部">重置全部</button>
       </div>
     </div>
   </div>
@@ -671,6 +675,7 @@ main{
 <div id="toastLayer"></div>
 <canvas id="fxCanvas"></canvas>
 
+<script src="i18n.js"></script>
 <script src="workbuddy-cloud-sdk.js"></script>
 <script src="pixel-art.js"></script>
 <script src="cloud.js"></script>

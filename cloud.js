@@ -35,8 +35,8 @@ const Cloud = (() => {
   function setSync(kind, text) {
     const dot = G('syncDot');
     if (dot) dot.className = 'sync-dot' + (kind ? ' ' + kind : '');
-    const t = G('syncText');
-    if (t) t.textContent = text;
+    const t2 = G('syncText');
+    if (t2) t2.textContent = text;
   }
 
   function gateErr(msg) {
@@ -47,9 +47,9 @@ const Cloud = (() => {
   function acctRender() {
     const el = G('acctText');
     if (!el) return;
-    if (!session) { el.textContent = '未登录'; return; }
+    if (!session) { el.textContent = t('未登录'); return; }
     const who = session.user && (session.user.name || session.user.email || session.user.phone);
-    el.innerHTML = '已登录' + (who ? ' · <b>' + escapeWho(who) + '</b>' : '') + ' · 进度已云端保存';
+    el.innerHTML = t('已登录') + (who ? ' · <b>' + escapeWho(who) + '</b>' : '') + ' ' + t('· 进度已云端保存');
   }
   const escapeWho = (s) => String(s).replace(/[<>&"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]));
 
@@ -111,7 +111,7 @@ const Cloud = (() => {
   async function pushNow() {
     if (!session || !client) return;
     pushing = true;
-    setSync('ing', '同步中');
+    setSync('ing', t('同步中'));
     try {
       const state = onReady && onReady.getState ? onReady.getState() : null;
       if (!state) { pushing = false; return; }
@@ -119,10 +119,10 @@ const Cloud = (() => {
       const { error } = await client.database.from(SYNC_TABLE).upsert(payload, { onConflict: 'owner_id' });
       if (error) throw error;
       lastError = null;
-      setSync('ok', '已同步');
+      setSync('ok', t('已同步'));
     } catch (e) {
       lastError = e;
-      setSync('bad', '同步失败');
+      setSync('bad', t('同步失败'));
       console.warn('[cloud] push failed:', e && (e.message || e));
     } finally {
       pushing = false;
@@ -132,7 +132,7 @@ const Cloud = (() => {
 
   function queuePush() {
     if (!session) return;
-    setSync('ing', '同步中');
+    setSync('ing', t('同步中'));
     if (pushTimer) clearTimeout(pushTimer);
     pushTimer = setTimeout(() => {
       pushTimer = null;
@@ -161,7 +161,7 @@ const Cloud = (() => {
     const inp = G('gateId');
     if (inp) {
       inp.value = '';
-      inp.placeholder = mode === 'phone' ? '请输入 11 位手机号' : '请输入邮箱地址';
+      inp.placeholder = mode === 'phone' ? t('请输入 11 位手机号') : t('请输入邮箱地址');
       inp.maxLength = mode === 'phone' ? 11 : 60;
       inp.inputMode = mode === 'phone' ? 'numeric' : 'email';
       inp.autocomplete = mode === 'phone' ? 'tel' : 'email';
@@ -177,7 +177,7 @@ const Cloud = (() => {
     coolLeft = 0;
     if (coolTimer) { clearInterval(coolTimer); coolTimer = null; }
     const btn = G('gateSend');
-    if (btn) { btn.disabled = false; btn.textContent = '获取验证码'; }
+    if (btn) { btn.disabled = false; btn.textContent = t('获取验证码'); }
   }
 
   function startCool(sec) {
@@ -185,12 +185,12 @@ const Cloud = (() => {
     const btn = G('gateSend');
     if (!btn) return;
     btn.disabled = true;
-    btn.textContent = coolLeft + ' 秒';
+    btn.textContent = t('{n} 秒', { n: coolLeft });
     if (coolTimer) clearInterval(coolTimer);
     coolTimer = setInterval(() => {
       coolLeft -= 1;
       if (coolLeft <= 0) { resetCool(); return; }
-      btn.textContent = coolLeft + ' 秒';
+      btn.textContent = t('{n} 秒', { n: coolLeft });
     }, 1000);
   }
 
@@ -198,9 +198,9 @@ const Cloud = (() => {
     const inp = G('gateId');
     const v = inp ? inp.value.trim() : '';
     if (mode === 'phone') {
-      if (!/^1\d{10}$/.test(v)) { gateErr('请输入正确的 11 位手机号'); return null; }
+      if (!/^1\d{10}$/.test(v)) { gateErr(t('请输入正确的 11 位手机号')); return null; }
     } else {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { gateErr('请输入正确的邮箱地址'); return null; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) { gateErr(t('请输入正确的邮箱地址')); return null; }
     }
     gateErr('');
     return v;
@@ -223,7 +223,7 @@ const Cloud = (() => {
       pending = { target, verificationId: d.verificationId, isExistingUser: !!d.isExistingUser };
       startCool(60);
       const tip = G('gateTip');
-      if (tip) tip.innerHTML = '验证码已发送，请查看' + (mode === 'phone' ? '短信' : '邮箱') + '。<br>没收到可以等 60 秒后重发。';
+      if (tip) tip.innerHTML = t('验证码已发送，请查看邮箱。<br>没收到可以等 60 秒后重发。');
     } catch (e) {
       gateErr(prettyErr(e));
     } finally {
@@ -239,11 +239,11 @@ const Cloud = (() => {
     if (!target) return;
     const codeEl = G('gateCode');
     const token = codeEl ? codeEl.value.trim() : '';
-    if (!pending || pending.target !== target) { gateErr('请先获取验证码'); return; }
-    if (!/^\d{4,8}$/.test(token)) { gateErr('请输入收到的验证码'); return; }
+    if (!pending || pending.target !== target) { gateErr(t('请先获取验证码')); return; }
+    if (!/^\d{4,8}$/.test(token)) { gateErr(t('请输入收到的验证码')); return; }
     busy = true;
     const btn = G('gateSubmit');
-    if (btn) { btn.disabled = true; btn.textContent = '登录中…'; }
+    if (btn) { btn.disabled = true; btn.textContent = t('登录中…'); }
     gateErr('');
     try {
       const args = {
@@ -257,7 +257,7 @@ const Cloud = (() => {
       pending = null;
       resetCool();
       const s = await getSession();
-      if (!s) { gateErr('登录状态获取失败，请再试一次'); return; }
+      if (!s) { gateErr(t('登录状态获取失败，请再试一次')); return; }
       session = s;
       acctRender();
       await startGame();
@@ -266,7 +266,7 @@ const Cloud = (() => {
     } finally {
       busy = false;
       const b = G('gateSubmit');
-      if (b) { b.disabled = false; b.textContent = '登录 / 注册'; }
+      if (b) { b.disabled = false; b.textContent = t('登录 / 注册'); }
     }
   }
 
@@ -275,19 +275,19 @@ const Cloud = (() => {
     const status = e && e.status;
     // 短信通道：单手机号每日/每分钟条数上限
     if (/PhoneNumberDailyLimit|single mobile number every day/i.test(raw))
-      return '这个手机号今天的验证码已发满（短信有单号每日条数上限），请明天再试，或直接用微信 / 邮箱登录。';
+      return t('这个手机号今天的验证码已发满（短信有单号每日条数上限），请明天再试，或直接用微信 / 邮箱登录。');
     if (/LimitExceeded|exceeds the upper limit|DailyLimit/i.test(raw))
-      return '验证码发送次数已达上限，请明天再试，或改用微信 / 邮箱登录。';
+      return t('验证码发送次数已达上限，请明天再试，或改用微信 / 邮箱登录。');
     if (/FrequencyLimit|too frequent|TooManyRequests|too many requests/i.test(raw))
-      return '发送太频繁了，请等 1 分钟后再试。';
+      return t('发送太频繁了，请等 1 分钟后再试。');
     if (/PhoneNumber.*regex|invalid.*PhoneNumber|invalid_argument/i.test(raw))
-      return '手机号格式不对，请检查后重试。';
+      return t('手机号格式不对，请检查后重试。');
     if (/SmsSignature|signature|template.*not approved|not approved/i.test(raw))
-      return '短信签名或模板未通过审核，暂时发不出去。请先用微信 / 邮箱登录。';
-    if (/未开启|not enabled/i.test(raw)) return raw + '（管理员可在云服务面板开启该登录方式）';
-    if (/network|fetch|failed to fetch|timeout/i.test(raw)) return '网络不太稳定，请稍后重试';
-    if (status === 0 && !raw) return '操作失败，请重试';
-    return raw || '操作失败，请重试';
+      return t('短信签名或模板未通过审核，暂时发不出去。请先用微信 / 邮箱登录。');
+    if (/未开启|not enabled/i.test(raw)) return raw + t('（管理员可在云服务面板开启该登录方式）');
+    if (/network|fetch|failed to fetch|timeout/i.test(raw)) return t('网络不太稳定，请稍后重试');
+    if (status === 0 && !raw) return t('操作失败，请重试');
+    return raw || t('操作失败，请重试');
   }
 
   /* ---------------- 第三方登录（微信 / WorkBuddy） ---------------- */
@@ -323,17 +323,17 @@ const Cloud = (() => {
     gateShow('loading');
     if (!provider || !PROVIDER_LABEL[provider]) {
       clearCallbackParams();
-      setLoadingText('登录信息不完整');
+      setLoadingText(t('登录信息不完整'));
       gateShow('form');
-      gateErr('授权回调缺少有效的登录方式，请重新登录。');
+      gateErr(t('授权回调缺少有效的登录方式，请重新登录。'));
       return;
     }
-    setLoadingText('正在完成' + PROVIDER_LABEL[provider] + '登录…');
+    setLoadingText(t('正在完成{provider}登录…', { provider: t(PROVIDER_LABEL[provider]) }));
     const fn = provider === 'wechat' ? client.auth.handleWechatWebCallback : client.auth.handleWorkBuddyCallback;
     if (typeof fn !== 'function') {
       clearCallbackParams();
       gateShow('form');
-      gateErr('当前云端组件版本不支持该登录方式，请刷新页面后重试。');
+      gateErr(t('当前云端组件版本不支持该登录方式，请刷新页面后重试。'));
       return;
     }
     let s = null;
@@ -366,14 +366,14 @@ const Cloud = (() => {
     gateErr('');
     const btn = G(provider === 'wechat' ? 'btnWechat' : 'btnWorkbuddy');
     const label = btn ? btn.innerHTML : '';
-    if (btn) { btn.disabled = true; btn.textContent = '跳转中…'; }
+    if (btn) { btn.disabled = true; btn.textContent = t('跳转中…'); }
     try {
       const { data, error } = await client.auth.signInWithOAuth({
         provider,
         redirectTo: oauthRedirectTarget()
       });
       if (error) { gateErr(prettyErr(error)); return; }
-      if (!data || !data.url) { gateErr('无法发起登录，请稍后再试'); return; }
+      if (!data || !data.url) { gateErr(t('无法发起登录，请稍后再试')); return; }
       location.assign(data.url);
       return;
     } catch (e) {
@@ -387,19 +387,19 @@ const Cloud = (() => {
   /* ---------------- 启动 ---------------- */
   async function startGame() {
     gateShow('loading');
-    setLoadingText('正在读取你的存档…');
+    setLoadingText(t('正在读取你的存档…'));
     let state = null;
     try {
       state = await pull();
     } catch (e) {
-      setLoadingText('存档读取失败');
-      gateErr('无法读取云端存档：' + prettyErr(e));
+      setLoadingText(t('存档读取失败'));
+      gateErr(t('无法读取云端存档：') + prettyErr(e));
       const btn = G('gateReload');
       if (btn) btn.hidden = false;
       return;
     }
     gateHide();
-    setSync('ok', '已同步');
+    setSync('ok', t('已同步'));
     if (onReady && onReady.enter) onReady.enter(state);
   }
 
@@ -407,12 +407,12 @@ const Cloud = (() => {
     onReady = handlers || {};
     drawGateHero();
     gateShow('loading');
-    setLoadingText('正在连接云端…');
+    setLoadingText(t('正在连接云端…'));
 
     const ok = await init();
     if (!ok) {
-      setLoadingText('云端组件加载失败');
-      gateErr('网络异常，无法加载登录组件。请检查网络后刷新页面。');
+      setLoadingText(t('云端组件加载失败'));
+      gateErr(t('网络异常，无法加载登录组件。请检查网络后刷新页面。'));
       return;
     }
     // 授权回调必须先于任何登录门判断处理：code 是一次性的

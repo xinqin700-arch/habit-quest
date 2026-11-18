@@ -19,5 +19,5 @@ def build(tpl_name, js_names, out_name):
     print(f"built {out.name}  {out.stat().st_size/1024:.1f} KB")
 
 
-build("template.html", ["workbuddy-cloud-sdk.js", "pixel-art.js", "cloud.js", "app.js"], "index.html")
+build("template.html", ["i18n.js", "workbuddy-cloud-sdk.js", "pixel-art.js", "cloud.js", "app.js"], "index.html")
 build("demo-template.html", ["pixel-art.js", "demo.js"], "evolution-demo.html")

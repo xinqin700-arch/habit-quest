@@ -30,6 +30,7 @@ const STAGE_META = {
   5: { name: '加冕', en: 'CROWNED' }
 };
 const EVO_DAYS = [3, 7, 14, 21];
+const stageName = (n) => (isEN() ? STAGE_META[n].en : STAGE_META[n].name);
 
 const PRAISES = [
   '今天的你，比昨天多了一点点厉害。', '盖章确认：这件事你做到了。', '星星替你记下了这一笔。',
@@ -100,7 +101,7 @@ function checkMedal() {
       confetti(220);
       blip(1040, 0.18);
       setTimeout(() => blip(1320, 0.22), 160);
-      toast('🏅 21 天习惯勋章达成！这一关，你通关了');
+      toast(t('🏅 21 天习惯勋章达成！这一关，你通关了'));
     }, 1100);
   }
 }
@@ -225,7 +226,7 @@ function renderHud() {
   const d = totalDays();
   if (rawDays() > 21) {
     const m = ((rawDays() - 1) % 21) + 1;
-    $('#dayChip').textContent = `第 ${Math.floor((rawDays() - 1) / 21) + 1} 轮 · ${m}/21`;
+    $('#dayChip').textContent = t('第 {r} 轮 · {m}/21', { r: Math.floor((rawDays() - 1) / 21) + 1, m });
   } else {
     $('#dayChip').textContent = `DAY ${Math.max(d, 1)} / 21`;
   }
@@ -234,12 +235,14 @@ function renderHud() {
 
 function renderHeroMeta() {
   const c = CHARS[S.char];
-  $('#charName').textContent = S.name || c.name;
-  $('#charSub').textContent = c.sub;
-  $('#stagePill').textContent = `${STAGE_META[S.stage].name} · STAGE ${S.stage}`;
+  const defaultNames = CHAR_KEYS.map(k => CHARS[k].name);
+  const custom = S.name && defaultNames.indexOf(S.name) < 0 ? S.name : '';
+  $('#charName').textContent = custom || t(c.name);
+  $('#charSub').textContent = t(c.sub);
+  $('#stagePill').textContent = `${stageName(S.stage)} · STAGE ${S.stage}`;
   const mp = $('#medalPill');
   if (mp) mp.hidden = !S.medal;
-  $('#sceneTag').textContent = SCENE_NAME[currentScene()];
+  $('#sceneTag').textContent = t(SCENE_NAME[currentScene()]);
 
   const hp = clamp(S.hp, 0, 100);
   $('#hpBar').style.width = hp + '%';
@@ -257,7 +260,7 @@ function renderHeroMeta() {
     const isNext = nextEvo() === day;
     return `<div class="evo-step ${done ? 'done' : ''} ${isNext ? 'next' : ''}">
       <span class="dot">${done ? '✦' : day}</span>
-      <span class="lbl">第 ${day} 天</span>
+      <span class="lbl">${t('第 {d} 天', { d: day })}</span>
     </div>`;
   }).join('');
 }
@@ -279,7 +282,7 @@ function renderHabits() {
   const box = $('#habits');
   const tk = todayKey();
   if (!S.habits.length) {
-    box.innerHTML = `<p class="tiny">还没有习惯，去设置里添加吧。</p>`;
+    box.innerHTML = `<p class="tiny">${t('还没有习惯，去设置里添加吧。')}</p>`;
     return;
   }
   box.innerHTML = S.habits.map(h => {
@@ -291,16 +294,16 @@ function renderHabits() {
           <span class="habit-name">${escapeHtml(h.name)}</span>
           ${h.streak > 1 ? `<span class="streak">🔥 ${h.streak}</span>` : ''}
         </div>
-        <div class="habit-meta">累计 ${h.total} 次 · 连续 ${h.streak} 天</div>
+        <div class="habit-meta">${t('累计 {n} 次 · 连续 {s} 天', { n: h.total, s: h.streak })}</div>
         <div class="bar mini"><i style="width:${Math.min(100, h.streak / 21 * 100)}%"></i></div>
       </div>
       <button class="btn check ${doneToday ? 'ghost' : ''}" ${doneToday ? 'disabled' : ''} data-check="${h.id}">
-        ${doneToday ? '✓ 已完成' : '打卡'}
+        ${doneToday ? t('✓ 已完成') : t('打卡')}
       </button>
     </div>`;
   }).join('');
   const doneCount = S.habits.filter(h => h.last === tk).length;
-  $('#habitHint').textContent = `${doneCount}/${S.habits.length} 已打卡`;
+  $('#habitHint').textContent = t('{n}/{m} 已打卡', { n: doneCount, m: S.habits.length });
 
   $$('#habits canvas[data-icon]').forEach(cv => {
     const ctx = cv.getContext('2d');
@@ -315,7 +318,7 @@ function renderCards() {
   const total = S.cards.length + (S.medal ? 1 : 0);
   $('#cardCount').textContent = total;
   if (!total) {
-    box.innerHTML = `<p class="tiny">第 3 天会得到第一张卡片。每次进化都是抽卡，每个人抽到的都不一样。</p>`;
+    box.innerHTML = `<p class="tiny">${t('第 3 天会得到第一张卡片。每次进化都是抽卡，每个人抽到的都不一样。')}</p>`;
     return;
   }
   let html = '';
@@ -323,8 +326,8 @@ function renderCards() {
     html += `<div class="acard medal">
       <canvas class="px" width="96" height="64" id="medalCanvas"></canvas>
       <div class="acard-meta">
-        <span class="acard-title">21 天习惯勋章</span>
-        <span class="acard-sub">通关纪念 · 可继续记录</span>
+        <span class="acard-title">${t('21 天习惯勋章')}</span>
+        <span class="acard-sub">${t('通关纪念 · 可继续记录')}</span>
       </div>
     </div>`;
   }
@@ -332,8 +335,8 @@ function renderCards() {
     <div class="acard">
       <canvas class="px" width="96" height="64" data-card="${c.id}"></canvas>
       <div class="acard-meta">
-        <span class="acard-title">${escapeHtml(c.title)}</span>
-        <span class="acard-sub">${SCENE_NAME[c.scene]} · 第 ${c.stage === 2 ? 3 : c.stage === 3 ? 7 : c.stage === 4 ? 14 : 21} 天</span>
+        <span class="acard-title">${escapeHtml(t(c.title))}</span>
+        <span class="acard-sub">${t('{scene} · 第 {d} 天', { scene: t(SCENE_NAME[c.scene]), d: c.stage === 2 ? 3 : c.stage === 3 ? 7 : c.stage === 4 ? 14 : 21 })}</span>
       </div>
     </div>`).join('');
   box.innerHTML = html;
@@ -367,33 +370,33 @@ function renderDrops() {
   const recent = S.drops.slice(-8).reverse();
   const chips = S.rewards.length
     ? S.rewards.map(r => `<span class="chip">${escapeHtml(r)}</span>`).join('')
-    : `<span class="chip dim">未设置 · 系统随机</span>`;
+    : `<span class="chip dim">${t('未设置 · 系统随机')}</span>`;
 
   box.innerHTML = `
     <div class="chips">${chips}</div>
     ${recent.length ? recent.map(d => `
       <div class="drop ${d.claimed ? 'claimed' : ''}" data-drop="${d.id}">
         <span class="drop-icon">🎁</span>
-        <span class="drop-text">${escapeHtml(d.text)}</span>
-        <button class="mini-btn" data-claim="${d.id}">${d.claimed ? '已兑现' : '兑现'}</button>
-      </div>`).join('') : `<p class="tiny">完成一次打卡就会掉一条奖励。</p>`}
+        <span class="drop-text">${escapeHtml(t(d.text))}</span>
+        <button class="mini-btn" data-claim="${d.id}">${d.claimed ? t('已兑现') : t('兑现')}</button>
+      </div>`).join('') : `<p class="tiny">${t('完成一次打卡就会掉一条奖励。')}</p>`}
   `;
 }
 
 function renderWardrobe() {
-  $('#decorHint').textContent = `${S.decor.length} 件`;
+  $('#decorHint').textContent = t('{n} 件', { n: S.decor.length });
   const box = $('#wardrobe');
   box.classList.toggle('empty', !S.decor.length);
   if (!S.decor.length) {
-    box.innerHTML = `<p class="tiny">打卡有概率掉落装饰。墨镜、头花、手杖……都会随机出现。</p>`;
+    box.innerHTML = `<p class="tiny">${t('打卡有概率掉落装饰。墨镜、头花、手杖……都会随机出现。')}</p>`;
   } else {
     box.innerHTML = S.decor.map(id => {
       const d = DECOR_MAP[id];
       if (!d) return '';
       const on = S.equipped.includes(id);
-      return `<button class="decor ${on ? 'on' : ''}" data-decor="${id}" title="${d.name}">
+      return `<button class="decor ${on ? 'on' : ''}" data-decor="${id}" title="${escapeHtml(t(d.name))}">
         <canvas class="px" width="32" height="32" data-dp="${id}"></canvas>
-        <span>${d.name}</span>
+        <span>${escapeHtml(t(d.name))}</span>
       </button>`;
     }).join('');
     S.decor.forEach(id => {
@@ -415,11 +418,11 @@ function renderWardrobe() {
   $('#foodBag').innerHTML = foods.length
     ? foods.map(fid => {
       const f = FOOD_MAP[fid];
-      return `<button class="food" data-feed="${fid}" title="投喂 ${f.name}">
+      return `<button class="food" data-feed="${fid}" title="${escapeHtml(t('投喂 {name}', { name: t(f.name) }))}">
         <canvas class="px" width="10" height="10" data-fd="${fid}"></canvas>
-        <span>${f.name}</span><b>x${S.food[fid]}</b></button>`;
+        <span>${escapeHtml(t(f.name))}</span><b>x${S.food[fid]}</b></button>`;
     }).join('')
-    : `<p class="tiny">还没有零食。打卡时有概率捡到，投喂会让 TA 很开心。</p>`;
+    : `<p class="tiny">${t('还没有零食。打卡时有概率捡到，投喂会让 TA 很开心。')}</p>`;
 
   foods.forEach(fid => {
     const cv = $(`canvas[data-fd="${fid}"]`);
@@ -442,7 +445,7 @@ function doCheckIn(id) {
   const h = S.habits.find(x => x.id === id);
   if (!h) return;
   const tk = todayKey();
-  if (h.last === tk) { toast('这个习惯今天已经打过卡啦 ✓'); return; }
+  if (h.last === tk) { toast(t('这个习惯今天已经打过卡啦 ✓')); return; }
 
   const yest = dayKey(new Date(Date.now() - 864e5));
   h.streak = h.last === yest ? h.streak + 1 : 1;
@@ -494,24 +497,24 @@ function dropDecor() {
   if (!left.length) { dropFood(); return; }
   const d = pick(left);
   S.decor.push(d.id);
-  toast(`获得装饰：${d.icon} ${d.name}`);
+  toast(t('获得装饰：{icon} {name}', { icon: d.icon, name: t(d.name) }));
   blip(880, 0.06);
 }
 
 function dropFood() {
   const f = pick(FOODS);
   S.food[f.id] = (S.food[f.id] || 0) + 1;
-  toast(`捡到零食：${f.name}`);
+  toast(t('捡到零食：{name}', { name: t(f.name) }));
 }
 
 /* ---------- 夸夸 ---------- */
 let praiseBag = [];
 function showPraise(habitName) {
   if (!praiseBag.length) praiseBag = PRAISES.slice().sort(() => Math.random() - 0.5);
-  const text = praiseBag.pop();
+  const text = t(praiseBag.pop());
   const el = document.createElement('div');
   el.className = 'praise';
-  el.innerHTML = `<span class="pq">“</span>${text}<span class="ph">—「${escapeHtml(habitName)}」</span>`;
+  el.innerHTML = `<span class="pq">“</span>${text}<span class="ph">${isEN() ? '— ' : '—「'}${escapeHtml(habitName)}${isEN() ? '' : '」'}</span>`;
   $('#praiseLayer').appendChild(el);
   setTimeout(() => el.classList.add('out'), 2600);
   setTimeout(() => el.remove(), 3300);
@@ -558,12 +561,12 @@ function openGacha(stage) {
   const ov = $('#gacha');
   ov.classList.add('show');
   $('#card3d').classList.remove('flip');
-  $('#gachaBtn').textContent = '开启进化 ✦';
+  $('#gachaBtn').textContent = t('开启进化 ✦');
   $('#gachaBtn').disabled = false;
   $('#gachaStars').textContent = '★'.repeat(pendingCard.rarity);
-  $('#gachaTitle').textContent = pendingCard.title;
-  $('#gachaDesc').textContent = SCENE_DESC[pendingCard.scene];
-  $('#gachaStage').textContent = `STAGE ${stage} · ${STAGE_META[stage].name}`;
+  $('#gachaTitle').textContent = t(pendingCard.title);
+  $('#gachaDesc').textContent = t(SCENE_DESC[pendingCard.scene]);
+  $('#gachaStage').textContent = `STAGE ${stage} · ${stageName(stage)}`;
 
   const cv = $('#gachaCanvas');
   const ctx = cv.getContext('2d');
@@ -582,7 +585,7 @@ function revealGacha() {
   blip(990, 0.12);
   setTimeout(() => {
     confetti(120);
-    $('#gachaBtn').textContent = '收下这张卡';
+    $('#gachaBtn').textContent = t('收下这张卡');
     $('#gachaBtn').disabled = false;
   }, 620);
 }
@@ -597,7 +600,7 @@ function closeGacha() {
   if (left.length) {
     const d = pick(left);
     S.decor.push(d.id);
-    setTimeout(() => toast(`进化奖励：${d.icon} ${d.name}`), 400);
+    setTimeout(() => toast(t('进化奖励：{icon} {name}', { icon: d.icon, name: t(d.name) })), 400);
   }
   pendingCard = null;
   save();
@@ -620,7 +623,7 @@ function feed(fid) {
     { type: 'heart', x: 58, y: 36, vx: -0.15, vy: 0.5, life: 26 },
     { type: 'heart', x: 66, y: 44, vx: 0.2, vy: 0.55, life: 22 }
   ]);
-  toast(`${f.name} +1 · 它眯起了眼睛`);
+  toast(t('{name} +1 · 它眯起了眼睛', { name: t(f.name) }));
   blip(760, 0.05);
   save(); renderAll();
 }
@@ -642,7 +645,7 @@ function claimDrop(id) {
   const d = S.drops.find(x => x.id === id);
   if (!d) return;
   d.claimed = !d.claimed;
-  if (d.claimed) { confetti(40); toast('奖励已兑现，好好享受 ✓'); }
+  if (d.claimed) { confetti(40); toast(t('奖励已兑现，好好享受 ✓')); }
   save(); renderAll();
 }
 
@@ -750,8 +753,8 @@ function buildCharPick() {
     <button class="char-card" data-char="${k}">
       <canvas class="px" width="96" height="64" data-preview="${k}"></canvas>
       <div class="char-card-meta">
-        <b>${CHARS[k].name}</b>
-        <span>${CHARS[k].sub}</span>
+        <b>${escapeHtml(t(CHARS[k].name))}</b>
+        <span>${escapeHtml(t(CHARS[k].sub))}</span>
       </div>
     </button>`).join('');
 
@@ -780,7 +783,7 @@ function buildHabitInputs() {
   box.innerHTML = [0, 1, 2].map(i => `
     <div class="habit-input" data-i="${i}">
       <span class="hi-num">${i + 1}</span>
-      <input class="hi-name" maxlength="12" placeholder="${i === 0 ? '比如：早起喝一杯水' : '留空即不设置'}" />
+      <input class="hi-name" maxlength="12" placeholder="${escapeHtml(i === 0 ? t('比如：早起喝一杯水') : t('留空即不设置'))}" />
       <div class="hi-icons">${ICONS.map(ic => `<button class="hi-ic ${i === 0 && ic === 'star' ? 'on' : ''}" data-ic="${ic}"><canvas class="px" width="8" height="8" data-hic="${ic}"></canvas></button>`).join('')}</div>
     </div>`).join('');
 
@@ -802,7 +805,7 @@ function buildRewardChips() {
   const box = $('#rewardChips');
   box.innerHTML = obRewards.length
     ? obRewards.map((r, i) => `<span class="chip">${escapeHtml(r)}<button data-rmr="${i}">×</button></span>`).join('')
-    : `<span class="chip dim">暂不设置 · 系统随机给</span>`;
+    : `<span class="chip dim">${t('暂不设置 · 系统随机给')}</span>`;
   $$('[data-rmr]').forEach(b => b.onclick = () => {
     obRewards.splice(+b.dataset.rmr, 1);
     buildRewardChips();
@@ -821,24 +824,26 @@ function startGame() {
       total: 0, streak: 0, last: null, dates: []
     });
   });
-  if (!habits.length) { toast('至少定一个习惯，才有得打卡呀'); return; }
+  if (!habits.length) { toast(t('至少定一个习惯，才有得打卡呀')); return; }
 
   S = defaultState();
   S.char = obChar || 'prince';
-  S.name = CHARS[S.char].name;
+  S.name = '';
   S.habits = habits;
   S.rewards = obRewards.slice();
   save();
   $('#onboard').classList.remove('show');
   renderAll();
-  setTimeout(() => toast('21 天，从今天开始。'), 500);
+  setTimeout(() => toast(t('21 天，从今天开始。')), 500);
 }
 
 /* ============================================================
    设置
    ============================================================ */
 function openSettings() {
-  $('#setName').value = S.name || '';
+  const defaultNames = CHAR_KEYS.map(k => CHARS[k].name);
+  $('#setName').value = S.name && defaultNames.indexOf(S.name) < 0 ? S.name : '';
+  $('#setName').placeholder = escapeHtml(t(CHARS[S.char].name));
   $('#setHabits').innerHTML = S.habits.map((h, i) => `
     <div class="set-row"><span>${i + 1}</span><input data-hn="${h.id}" value="${escapeHtml(h.name)}" maxlength="12"></div>`).join('');
   buildSetRewards();
@@ -849,7 +854,7 @@ function openSettings() {
 function buildSetRewards() {
   $('#setRewards').innerHTML = S.rewards.length
     ? S.rewards.map((r, i) => `<span class="chip">${escapeHtml(r)}<button data-srm="${i}">×</button></span>`).join('')
-    : `<span class="chip dim">未设置</span>`;
+    : `<span class="chip dim">${t('未设置')}</span>`;
   $$('[data-srm]').forEach(b => b.onclick = () => {
     S.rewards.splice(+b.dataset.srm, 1);
     save(); buildSetRewards(); renderDrops();
@@ -869,14 +874,14 @@ function demoMilestone(n) {
   if (before === S.stage) {
     /* 已经在这个形态：换一张卡重新抽，展示「每人不一样」 */
     save(); renderAll();
-    toast('重抽一次进化效果，看看这次是什么');
+    toast(t('重抽一次进化效果，看看这次是什么'));
     setTimeout(() => openGacha(S.stage), 400);
     return;
   }
   save(); renderAll();
   confetti(110);
   blip(660, 0.08);
-  showPraise(`第 ${n} 天`);
+  showPraise(t('第 {d} 天', { d: n }));
   dropReward();
   save(); renderAll();
   setTimeout(() => openGacha(S.stage), 850);
@@ -890,7 +895,7 @@ function simulateDay() {
   S.stage = calcStage();
   checkMedal();
   save(); renderAll();
-  toast(`快进到第 ${totalDays()} 天（预览用）`);
+  toast(t('快进到第 {d} 天（预览用）', { d: totalDays() }));
   if (S.stage > before) setTimeout(() => openGacha(S.stage), 500);
 }
 
@@ -914,7 +919,7 @@ function bindEvents() {
     S.sound = !S.sound;
     save(); renderHud();
     if (S.sound) blip(880, 0.08);
-    toast(S.sound ? '音效已开启' : '音效已关闭');
+    toast(t(S.sound ? '音效已开启' : '音效已关闭'));
   };
 
   $('#settingsBtn').onclick = openSettings;
@@ -926,7 +931,7 @@ function bindEvents() {
   $('#backStep1').onclick = () => { $('#ob2').hidden = true; $('#ob1').hidden = false; };
   $('#toStep3').onclick = () => {
     const any = $$('#habitInputs .hi-name').some(i => i.value.trim());
-    if (!any) { toast('先写下一个想养成的习惯吧'); return; }
+    if (!any) { toast(t('先写下一个想养成的习惯吧')); return; }
     $('#ob2').hidden = true; $('#ob3').hidden = false;
     buildRewardChips();
   };
@@ -934,7 +939,7 @@ function bindEvents() {
   $('#addReward').onclick = () => {
     const v = $('#rewardInput').value.trim();
     if (!v) return;
-    if (obRewards.length >= 8) { toast('最多 8 条奖励，够用啦'); return; }
+    if (obRewards.length >= 8) { toast(t('最多 8 条奖励，够用啦')); return; }
     obRewards.push(v);
     $('#rewardInput').value = '';
     buildRewardChips();
@@ -950,17 +955,17 @@ function bindEvents() {
 
   // 设置面板
   $('#setSave').onclick = () => {
-    S.name = $('#setName').value.trim() || CHARS[S.char].name;
+    S.name = $('#setName').value.trim() || '';
     $$('#setHabits input[data-hn]').forEach(inp => {
       const h = S.habits.find(x => x.id === inp.dataset.hn);
       if (h) h.name = inp.value.trim() || h.name;
     });
-    save(); renderAll(); toast('已保存');
+    save(); renderAll(); toast(t('已保存'));
   };
   $('#setAddReward').onclick = () => {
     const v = $('#setRewardInput').value.trim();
     if (!v) return;
-    if (S.rewards.length >= 8) { toast('最多 8 条'); return; }
+    if (S.rewards.length >= 8) { toast(t('最多 8 条')); return; }
     S.rewards.push(v);
     $('#setRewardInput').value = '';
     save(); buildSetRewards(); renderDrops();
@@ -970,13 +975,13 @@ function bindEvents() {
     b.onclick = () => demoMilestone(+b.dataset.demo);
   });
   $('#setReset').onclick = async () => {
-    if (!confirm('确定清空全部进度重新开始吗？账号里的云端存档也会一并清空，无法撤销。')) return;
+    if (!confirm(t('确定清空全部进度重新开始吗？账号里的云端存档也会一并清空，无法撤销。'))) return;
     try { await Cloud.clearRemote(); } catch (e) { }
     localStorage.removeItem(KEY);
     location.reload();
   };
   $('#acctOut').onclick = async () => {
-    if (!confirm('退出登录？进度已保存在云端，下次登录可以接着养。')) return;
+    if (!confirm(t('退出登录？进度已保存在云端，下次登录可以接着养。'))) return;
     await Cloud.signOut();
     localStorage.removeItem(KEY);
     location.reload();
@@ -1004,6 +1009,8 @@ function normalizeState(st) {
   s.sim = s.sim || 0; s.decor = s.decor || []; s.equipped = s.equipped || [];
   s.food = s.food || {}; s.cards = s.cards || []; s.drops = s.drops || [];
   s.medal = !!s.medal;
+  // 旧存档里可能存的是角色默认名（中文），清掉以便跟随语言显示
+  if (s.name && CHAR_KEYS.some(k => CHARS[k].name === s.name)) s.name = '';
   return s;
 }
 
@@ -1015,7 +1022,7 @@ function enterGame(cloudState) {
     // 首次登录：把本机已有的进度搬到账号里
     S = normalizeState(local);
     Cloud.queuePush();
-    toast('已把本机进度同步到你的账号');
+    toast(t('已把本机进度同步到你的账号'));
   } else {
     S = defaultState();
   }
@@ -1031,6 +1038,15 @@ function enterView() {
   S.stage = calcStage();
   renderAll();
   requestAnimationFrame(heroTick);
+}
+
+/* 切换语言：静态节点由 applyI18n 处理，这里重绘所有动态区域 */
+function onLangChange() {
+  buildCharPick();
+  if (!S) return;
+  renderAll();
+  const set = $('#settings');
+  if (set && set.classList.contains('show')) openSettings();
 }
 
 document.addEventListener('DOMContentLoaded', init);
